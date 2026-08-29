@@ -1,29 +1,20 @@
-# VM: docker-agents (VMID 100)
+# VM: docker-agents / "Tuck" (VMID 100)
 
 ## Purpose
-Hosts Docker + migrated agents (OpenClaw) from AWS.
+Hosts Docker + migrated agents (OpenClaw) from AWS. Runs a 12-agent AI system.
 
-## Specs
+## Specs (current — updated 2026-08)
 - OS: Debian 13.6 (Trixie)
-- vCPU: 2 (type: host)
-- RAM: 4GB (4096 MiB)
-- Disk: 32 GB on local-lvm (NVMe-backed)
-- IP: 192.168.8.139 (DHCP from router)
+- vCPU: 3 (type: host)
+- RAM: 6 GB (6144 MiB) — resized down from original 8GB/4-core to free RAM headroom for the Hermes VM
+- Disk: 32 GB on local-lvm (NVMe-backed), plus a second 16 GB disk (scsi1, backup=0) for OpenClaw's own internal backups
+- IP: **192.168.8.10 (static, MAC reservation)** — was DHCP-assigned 192.168.8.139, moved to a static reservation for reliability
 - Qemu guest agent: installed and running
+- Gateway service runs on port 18789
 
 ## Accounts
-- root -- password in apple
-- rich -- regular user, in 'sudo' and 'docker' groups
-  - password in apple
-- guni -- she has password
+- root — password in Apple Passwords ("Homelab - docker-agents root (192.168.8.10)")
 
-## Software installated
-- Docker CE (via official Docker apt repo) -- verified with hello-world
- - Docker enabled on boot
- - user rich can run docker without sudo
-- Node.js v22 (for OpenClaw) [confirm after install]
-- rsync, curl, git, qemu-guest-agent
-
-## Access 
-- SSH: ssh rich@192.168.8.139 (from any device on Beryl AX network)
-- Console: via Proxmox web UI (fallback only)
+## Change log
+- 2026-07-17: VM created, Docker CE installed, agents migrated from AWS via rsync pull
+- 2026-08-21: Moved to static IP 192.168.8.10 (MAC reservation), resized 4 vCPU/8GB → 3 vCPU/6GB to make room for the new Hermes VM on the same host — decision made after measuring actual RAM usage (well under allocation) rather than guessing at need
