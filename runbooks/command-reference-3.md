@@ -433,7 +433,52 @@ echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab   # persist across reboot
 
 ---
 
-## 9 — THINGS DELIBERATELY NOT RUN (and why)
+## 9 — "TALKING" TO WHOEVER IS INSIDE (one-way channels only)
+
+Cowrie is **not** a shared TTY — there's no `wall`-style way to type directly
+into an attacker's live session. What's actually available is a set of
+one-way channels, each suited to a different purpose:
+
+| Channel | Direction | Use |
+|---|---|---|
+| MOTD / `issue` banner | you → them | already shown — "This server is monitored" |
+| Planted files / prize trail | you → them | `notes.txt`, `prize.txt` — read at their pace |
+| Cowrie **txtcmds** | you → them | they type a command name, Cowrie prints a file back |
+| Telegram output plugin | them → you (alert) | already enabled, fires on command events |
+| `tail -f` / Cowrie's `playlog` | you watch | after-the-fact or live-watch, still not a chat |
+| Proxy backend to a real VM | two-way | **do not point this at the honeypot VPS** |
+
+### Setting up a txtcmds response
+```
+DIR=/home/cowrie/cowrie/share/cowrie/txtcmds
+mkdir -p "$DIR"
+cat > "$DIR/contact" << 'EOF'
+If you are reading this on purpose: you found the honeypot.
+Message u/Performer-Constant on Reddit with code HONEYPOT-BEAR-2026
+EOF
+chmod 644 "$DIR/contact"
+```
+- A txtcmd is the simplest possible interaction: an attacker types the
+  command name (`contact`), and Cowrie prints the file's contents back — no
+  real shell logic involved. `mkdir -p` makes the directory tree if it
+  doesn't already exist; the heredoc (`<< 'EOF'`) writes the response text
+  literally, same pattern used for authoring bait files in section 3.
+  Restart Cowrie after adding one so the new command is picked up.
+- Pair with a hint elsewhere (e.g. one line in `notes.txt` mentioning "see
+  also: contact") so the txtcmd is discoverable, not just present.
+
+### The hard line: never enable live/proxy mode here
+Cowrie supports a `backend = proxy` mode that connects a session through to a
+real VM instead of the emulated shell — genuine two-way interaction. **This
+is explicitly ruled out for this box.** It only makes sense on a fully
+disposable VM with no real keys and no admin port anywhere near it — the
+opposite of how this honeypot is set up. The entire safety model here rests
+on the emulation being fake; a live proxy would remove that guarantee
+entirely.
+
+---
+
+## 10 — THINGS DELIBERATELY NOT RUN (and why)
 
 Discipline matters more on an internet-exposed box than anywhere else in the
 lab:
@@ -451,6 +496,6 @@ lab:
 ---
 
 END. Detailed per-session narratives are in `runbooks/session12-notes.md`
-through `session18-notes.md`; the deep operator manual for the honeypot box is
+through `session19-notes.md`; the deep operator manual for the honeypot box is
 the project's honeypot command explainer. This file is the topic-organized
 quick reference.
