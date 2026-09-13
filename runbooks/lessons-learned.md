@@ -83,3 +83,58 @@
 - STILL OPEN: VLAN 20 can currently reach VLAN 10, .8.165, the Beryl, and all
   VLAN 1 hosts incl. pve-node1 and both VMs. VLANs are broadcast separation,
   NOT a security boundary. Isolation has to be written as ACL policy next.
+
+## 2026-09 -- WhiteSky wall jacks dead; Juniper AP's spare port is a live uplink
+- `cat /sys/class/net/<if>/carrier` is the fastest Layer 1 test -- 0/1, no
+  interpretation needed. Answers "is there a signal at all" before DHCP, IP,
+  or DNS can even be relevant. Check this before anything above it.
+- Isolate hardware faults by holding everything constant except the one thing
+  under test: same laptop, same cable, against three different far ends
+  (three dead wall jacks, one known-good switch, one unknown AP port). The
+  laptop/cable were cleared entirely because they returned carrier=1 against
+  two of the three destinations.
+- Three independent wall-jack drops failing at once, after previously
+  working, points upstream (patch panel / managed switch) -- not three
+  simultaneous independent cable failures.
+- A building AP can carry a second, independent wired uplink port alongside
+  its own WiFi/PoE feed. Worth checking on any managed-AP hardware before
+  assuming wired access requires the property's dedicated jacks.
+- 100.64.0.0/10 addresses are CGNAT space -- expected on shared/managed
+  building internet, not a misconfiguration.
+- Still open: whether that AP port allows multiple client MACs behind it.
+  Test with ONE additional device before assuming it'll support the whole
+  homelab switch.
+
+## 2026-09-13 -- Juniper spare port is single-MAC locked; Beryl migration still viable
+- Confirmed by direct test: the Juniper AP's spare Ethernet port serves DHCP
+  to any MAC but only forwards traffic past ARP for the FIRST MAC it learned.
+  A second device (Proxmox, after Mint had already used the port) got a
+  lease and then hit "Destination Host Unreachable" pinging its own gateway
+  -- reseating both cable ends changed nothing. Classic sticky-MAC / port
+  security behavior on a managed building switch.
+- This does NOT block using the port as Beryl's WAN: Beryl already presents
+  ONE MAC to the outside via NAT, same as it does today over WiFi. The lock
+  only matters for devices plugged in raw, not behind a NAT router.
+- Real throughput case for doing it anyway, independent of the above:
+  FBI (via Beryl WiFi-repeater WAN) = 52 Mbps down / 94 up.
+  WhiteSky-Prose direct = 203 Mbps down / 324 up. ~4x/~3.4x gap, same
+  latency -- confirms the bottleneck is Beryl's WiFi-repeater WAN hop
+  specifically, not WhiteSky throttling the apartment.
+- GOTCHA: interrupted `dhclient -r && dhclient` with Ctrl-C mid-request --
+  it fell back to a stale cached lease instead of failing cleanly. Let DHCP
+  commands finish or time out; don't interrupt mid-negotiation.
+- GOTCHA: `curl --interface <if>` pins the socket to that NIC but grants NO
+  route. If that interface has no default route of its own (traffic-shifted
+  scenario, only the OLD interface/bridge still holds `default via ...`),
+  every request fails even though the interface and its own IP are fine.
+  Needed an explicit `ip route add <target> via <gw> dev <if>` per target.
+  Same failure mode as every NetworkManager stale-route trap this session,
+  just on Proxmox instead of Mint.
+- `speedtest-cli` (python/Ookla classic tool) returned a nonsense multi-day
+  ping and ~1Mbit reading -- broken tool, not a broken network. Prefer a
+  direct `curl -o /dev/null -w ...` against a known file host when this
+  tool gives an implausible number.
+- `apt install` hanging at "0% Working" with no error, on a host whose only
+  route to the internet is dead, looks like a package-manager problem and
+  is actually the routing problem one layer down. Check `ip route` before
+  troubleshooting apt itself.
