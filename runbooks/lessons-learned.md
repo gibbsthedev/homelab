@@ -138,3 +138,65 @@
   route to the internet is dead, looks like a package-manager problem and
   is actually the routing problem one layer down. Check `ip route` before
   troubleshooting apt itself.
+
+## 2026-09-20 -- ACLs on the SG300; wall jacks were a dead outlet
+- CONCEPT: an ACL is read top-to-bottom, FIRST MATCH WINS, then it STOPS.
+  Specific denies must go ABOVE the general permit. `permit ip any any` on
+  line 1 makes every rule below it dead code that looks like security.
+- CONCEPT: every Cisco ACL has an INVISIBLE `deny all` at the bottom. An
+  empty ACL applied to an interface blocks 100% of traffic. Build the rules
+  first, attach the ACL last. Also why the final rule must be an explicit
+  `permit ip any any` or internet traffic dies too.
+- CONCEPT: these ACLs are STATELESS -- no memory that you sent a request, so
+  return traffic is judged cold against the same rules. AWS Network ACLs are
+  stateless the same way; AWS Security Groups are STATEFUL and auto-allow
+  return traffic. Real interview question, real production footgun.
+- BIG ONE: VLANs are broadcast separation, NOT a security boundary. Before
+  the L3 migration VLAN 20 was isolated only because nothing routed between
+  segments (isolation by ABSENCE). Building a router removed that. Isolation
+  then has to be written as explicit policy or it does not exist.
+- Wildcard masks are the INVERSE of subnet masks: 1=wildcard(ignore),
+  0=hit(must match). Whole /24 = 0.0.0.255 (not 255.255.255.0). Single host
+  = 0.0.0.0. The switch helpfully rewrites `x.x.x.x 0.0.0.0` as `host x.x.x.x`.
+- Use `ip` not `tcp` in the rule -- `ip` covers ICMP/TCP/UDP/everything.
+  A tcp-only rule blocks web but leaves ping working = half a policy.
+- Use EXTENDED not standard ACLs: standard matches source only, extended
+  matches source AND destination. Policy about where traffic is GOING needs
+  extended.
+- FIRMWARE DEAD-END #3 (after `write memory` and `ip dhcp pool`):
+  `service-acl` does NOT exist on `interface vlan X` on this image. The full
+  VLAN-interface command list is just bridge/do/dot1x/end/exit/help/ip/
+  ipv6/name/no/sntp. It DOES exist on physical ports. Bound to gi3 instead
+  (the VLAN 20 access port) -- same effect, since all VLAN 20 traffic enters
+  there. Only `input` direction is offered.
+- METHOD: when a command is "Unrecognized," do NOT guess a second syntax.
+  Run bare `?` in that context and enumerate what actually exists. Check
+  other contexts too (VLAN interface vs physical port had different
+  capabilities). Same move that cracked `set system mode router` and DHCP.
+- VERIFY BY FUNCTION, not by config. Five destinations, three outcomes:
+  own gateway + internet PASS, VLAN 10 + switch mgmt + VLAN 1 FAIL. If all
+  five had worked the ACL wasn't enforced; if all five failed it was too
+  broad. The SPLIT is the proof.
+- ACL denies are SILENT -- 100% packet loss, no error message. Different
+  from "Destination Host Unreachable" (that's ARP failing, a lower layer).
+  Silence is deliberate: an explicit rejection confirms the target exists.
+- Best proof was accidental: same ping to .8.165 = 100% loss from VLAN 20,
+  0% loss from VLAN 1. Scope proven by contrast.
+- Switching the laptop back to DHCP while still plugged into gi3 fails with
+  "IP configuration could not be reserved" -- correct, there IS no DHCP
+  server on VLAN 20. Move the cable to a VLAN 1 port first.
+
+### Wall jacks: it was a dead outlet
+- Found the structured media cabinet the original investigation concluded
+  didn't exist. Wavenet 8-port patch panel, ports 1-4 punched and patched
+  to a small unmanaged switch below it.
+- The switch had NO LIGHTS. Swapped outlets -> lights on -> all three
+  previously-dead wall jacks immediately gave carrier 1, a real WhiteSky
+  CGNAT lease (100.110.30.7/22), and internet at ttl=59 / ~6.5ms.
+- One dead outlet took out every jack in the apartment at once, which is
+  exactly why all three failed simultaneously after previously working.
+- The original diagnosis correctly predicted "common upstream failure" but
+  assumed something sophisticated (reconfigured managed switch, unpatched
+  ports). When the logical layer has nothing left to explain, GO LOOK AT
+  THE PHYSICAL ONE.
+- 6.5ms wired vs 13-14ms on either WiFi path. WhiteSky support cancelled.
