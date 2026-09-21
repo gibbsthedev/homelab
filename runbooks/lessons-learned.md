@@ -200,3 +200,53 @@
   ports). When the logical layer has nothing left to explain, GO LOOK AT
   THE PHYSICAL ONE.
 - 6.5ms wired vs 13-14ms on either WiFi path. WhiteSky support cancelled.
+
+## 2026-09-20 (evening) -- Staging the VLAN 10 migration; four silent config defects
+- THEME: a config line accepted without error is NOT a config line that takes
+  effect. All four defects tonight were that shape, and none would have been
+  visible after the cutover -- they'd have surfaced as "sites are down" while
+  ping worked fine.
+- Tailscale OWNS /etc/resolv.conf on both VMs (MagicDNS, marked DO NOT EDIT).
+  All queries go to 100.100.100.100 and forward upstream -- and that upstream
+  was 192.168.8.1 (the Beryl) on both boxes. The `dns-nameservers` and `dns=`
+  lines in the OS configs are decoration.
+- Only surfaces under `sudo tailscale dns status`. Unprivileged output says
+  "Access denied: dns-osconfig dump access denied" -- a non-root check shows
+  nothing wrong.
+- TWO SEPARATE TAILNETS exist: rgibbs21.rg@gmail.com (tail523202.ts.net, holds
+  hermes) and richgibbs-prog@github (taila006d9.ts.net, holds docker-agents).
+  A DNS change in one admin console does NOT affect the other VM. Both needed
+  changing separately.
+- Setting a global nameserver in Tailscale is ADVISORY until you also turn ON
+  "Override DNS servers". With override off the client keeps preferring the
+  captured local value. Force a re-fetch with
+  `sudo tailscale set --accept-dns=true`.
+- The Beryl's dnsmasq localservice='1' bites again -- same finding as session
+  25, different victim. Any routed VLAN host pointed at 192.168.8.1 for DNS
+  gets "Ignoring query from non-local network".
+- Proxmox resolves its OWN node name via /etc/hosts and pveproxy binds based
+  on it. A stale entry after an IP change makes the node go grey or the UI
+  hang -- symptoms that look nothing like a hosts-file problem. This edit is
+  LIVE immediately, unlike /etc/network/interfaces.
+- `post-up /sbin/ethtool -K nico tso off` -- letter o, not zero. Erroring at
+  every boot for months, so TSO was never actually disabled (GSO/GRO were).
+  Offload-disabling on Realtek NICs is the classic fix for corrupt transfers
+  under load; it had been running at two-thirds strength.
+- DO NOT tag VLAN 10 on the VM's NIC in Proxmox. gi2 is an ACCESS port -- the
+  switch places untagged frames into VLAN 10 itself. Tagging in Proxmox would
+  double-tag into an access port and nothing would work. (VM100's self-report
+  recommended this; it was guessing at an architecture it can't see.)
+- `nmcli` reports the IN-MEMORY profile loaded at boot, not what's on disk. A
+  staged static config being invisible to nmcli is CORRECT, not a failure.
+- NetworkManager refuses to load a .nmconnection file unless it is mode 600.
+- `qm guest exec <vmid>` runs commands as root inside a guest via the QEMU
+  guest agent -- no network, no password. This is the real recovery path when
+  a guest boots with broken networking, better than Tailscale because it
+  doesn't depend on the network at all.
+- `qm terminal 100` fails when no serial0 device is defined on the VM.
+- Cloudflare Tunnel is an OUTBOUND connection from the VM. Cloudflare never
+  dials in, so the VM's LAN address is irrelevant to it. What matters for site
+  uptime is only how long the VM has no route and no DNS.
+- STILL UNTESTED going into cutover: VLAN 10 has only ever been tested by a
+  host with a second path available (Mint with WiFi up and /32 routes).
+  "The path works" and "the path works as the SOLE path" are different claims.
