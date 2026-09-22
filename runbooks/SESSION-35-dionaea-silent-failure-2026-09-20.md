@@ -6,6 +6,15 @@
 honeypot VPS thread. `SESSION-34-acls-and-wall-jacks-2026-09-20.md` is the SG300
 switch thread, which runs in parallel and shares the date but not the subject.
 
+> **CORRECTION (2026-09-22) — see `SESSION-37-dionaea-recurrence-and-corrections-2026-09-22.md`.**
+> The root-cause mechanism in §4–§5 is **disproven**. Dionaea froze again on
+> 2026-09-21 with ordinary SIP volume (~100 connections, no flood). `PIDS` stayed at 5
+> in both frozen states, which rules out timer-thread accumulation. And both incidents
+> logged ~712 Cleanup lines in one second, filling exactly 49,152 bytes (12 × 4 KiB) —
+> a buffer size, not "11.8 hours of backlog." The "backlog flush" lesson in §4 and §11
+> is therefore also wrong. The failure signature (§3), recovery (§6), and the
+> heartbeat monitor (§7) remain accurate. **The cause is unknown.**
+
 **Summary.** Dionaea stopped capturing on 2026-09-16 at 13:36:53 UTC and was not
 noticed until 2026-09-20 — **four days of lost sensor coverage**. Docker reported the
 container healthy the entire time. The alerting built in session 33 could not detect
