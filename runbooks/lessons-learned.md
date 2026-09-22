@@ -250,3 +250,19 @@
 - STILL UNTESTED going into cutover: VLAN 10 has only ever been tested by a
   host with a second path available (Mint with WiFi up and /32 routes).
   "The path works" and "the path works as the SOLE path" are different claims.
+
+## 2026-09-20 — VLAN 10 cutover (SESSION-36)
+
+- A clean ping ladder names the broken layer: own IP → gateway → other VLAN →
+  upstream router → internet → `getent hosts`. Each step adds one dependency.
+- ttl=63 instead of 64 on a ping across VLANs is the switch's routing hop.
+  Handy proof that traffic is being routed, not switched.
+- The M720q can fall through to PXE network boot on reboot. That's the
+  firmware not picking the disk, not the OS network config. F12 boot menu
+  recovers it; fix the boot order in BIOS.
+- Neither VM had `onboot: 1`. Check `qm config <id> | grep onboot` before any
+  host reboot so a stopped VM isn't mistaken for a failure.
+- After re-addressing, a fresh SSH host-key prompt is normal (new address,
+  same key). "REMOTE HOST IDENTIFICATION HAS CHANGED" is not.
+- Keep the address map handy after a migration: the only "outage" tonight was
+  SSHing to the wrong VM.
