@@ -130,10 +130,10 @@ to pick the disk. Read what the screen actually says before assuming cause.
 
 ## Follow-ups
 
-- [ ] **Autostart VMs:** `qm set 100 --onboot 1` and `qm set 101 --onboot 1`.
+- [x] **Autostart VMs:** (done) `qm set 100 --onboot 1` and `qm set 101 --onboot 1`.
       Today a power outage leaves every service down until started by hand.
 - [ ] **Fix M720q boot order** in BIOS (disk first, PXE off).
-- [ ] Update SSH configs and bookmarks to the new addresses.
+- [x] Update SSH configs and bookmarks to the new addresses.
 - [ ] Watch `dmesg -T | grep -i hang`: TSO offload is now actually disabled for
       the first time (the `nico` typo), which should help the e1000e hang.
 - [ ] Remove stale `/etc/resolv.pre-tailscale-backup.conf` on both VMs.
@@ -141,7 +141,9 @@ to pick the disk. Read what the screen actually says before assuming cause.
 - [ ] VLAN 10 ACL (note: VLAN 1 → VLAN 10 is open today, which is what keeps
       laptop management working).
 - [ ] SG300 NTP; reboot durability test (pre-existing).
-- [ ] **Next: Beryl wired WAN** on the freed eth1, Multi-WAN failover with the
+- [x] **Next: Beryl wired WAN** — DONE 2026-09-23, see SESSION-39. (Ended up on
+      the WAN-labeled port, not eth1 — the firmware only allows that port as
+      WAN; the switch uplink moved to the LAN port instead.) Multi-WAN failover with the
       WiFi repeater kept as backup.
 
 Unrelated change in the same window: Hermes deployed a new blog-post recovery
