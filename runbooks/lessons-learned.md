@@ -266,3 +266,37 @@
   same key). "REMOTE HOST IDENTIFICATION HAS CHANGED" is not.
 - Keep the address map handy after a migration: the only "outage" tonight was
   SSHing to the wrong VM.
+
+## 2026-09-23 -- Beryl wired WAN + failover proven (SESSION-39)
+- RESULT: 52/94 Mbps (WiFi-repeater WAN) -> 332/318 Mbps (wired WAN). Same
+  test path (FBI WiFi) before and after, so the WAN link is the only variable.
+- GL.iNet firmware only lets the WAN-LABELED port be WAN. Port Management's
+  WAN/LAN toggle exists only on that port; the LAN tab has no such option.
+  The plan to use the freed eth1 as WAN was impossible. Found by screenshotting
+  the real screen BEFORE clicking.
+- ORDER MATTERS: move the switch uplink OFF the WAN port first, then flip the
+  port to WAN, then plug the wall jack in. Flipping to WAN with the switch
+  still attached puts the whole internal network on the internet side.
+- Manage from WiFi, not a wired laptop behind the switch, when moving the
+  switch uplink -- the wired laptop loses the admin panel mid-change.
+- Multi-WAN defaulted to Failover with Ethernet priority 1, Repeater 2. No
+  change needed. A priority list is a claim, though -- not proof.
+- FAILOVER TESTED by pulling the WAN cable during `ping -O 1.1.1.1`:
+  57 sent / 57 received, 0% loss, both directions. A pulled cable drops link
+  instantly, so the router swaps routes before health checks even fail.
+- `ping -O` prints "no answer yet for icmp_seq=N" per lost packet. Without it
+  Linux silently skips sequence numbers.
+- JITTER is the tell, not average latency: wired 7.24-7.43 ms (0.2 ms spread),
+  repeater 7.87-15.0 ms (7 ms spread). That spread is what makes calls stutter.
+- TTL stayed 58 on both paths. TTL counts ROUTERS, not links -- both paths
+  cross the same routers, only the medium changed.
+- Pulling MINT's cable (different test): ~6 s outage, then Mint failed over to
+  its own WiFi (already connected, lower-priority metric 600 vs 100). Slower
+  than the Beryl only because the dead route took longer to withdraw.
+- "Destination Host Unreachable FROM YOUR OWN IP" = your device couldn't reach
+  the next hop; the packet never left the machine. Third failure signature,
+  alongside silent ACL drops and 0%-loss redundancy.
+- `ip route get 1.1.1.1` answers "which path am I using right now":
+  dev enp1s0 = wired, dev wlp2s0 = WiFi. Confirmed Mint failed BACK to wired.
+- Take a FRESH router backup after a change like this. The pre-change archive
+  holds the old port layout; restoring it would silently undo the migration.
