@@ -3,7 +3,7 @@
 **Date:** 2026-09-22
 **Box:** Hetzner Cloud VPS `ubuntu-4gb-hel1-2` (62.238.47.215)
 **Thread:** honeypot VPS
-**Continuity:** Follows `SESSION-35-dionaea-silent-failure-2026-09-20.md` for the
+**Continuity:** Follows `SESSION-35b-dionaea-silent-failure-2026-09-20.md` for the
 honeypot thread. `SESSION-35-vlan10-migration-staging` and
 `SESSION-36-proxmox-vlan10-cutover` belong to the switch/homelab thread.
 
@@ -309,7 +309,7 @@ spanning those windows has holes in it.
 | `/opt/honeypot-alerts/heartbeat_state.json` | Format changed from list to dict (migrated automatically) |
 | `/root/dionaea-postmortem-20260922-124507/` | **NEW** — incident 2 evidence (manual) |
 | `/root/dionaea-postmortem-20260922-131720-auto/` | **NEW** — forced test of auto-capture |
-| `SESSION-35-dionaea-silent-failure-2026-09-20.md` | Correction banner added; body left as written |
+| `SESSION-35b-dionaea-silent-failure-2026-09-20.md` | Correction banner added; body left as written |
 
 ---
 
