@@ -13,6 +13,16 @@
 **Analyst:** Rich (gibbsthedev)
 **Analyst test IP (excluded from all aggregates):** 104.241.55.33
 
+> **Errata (added in session 40, 2026-09-24).** Three statements below are wrong or
+> incomplete. See `SESSION-40-four-sensor-pull-and-corrections-2026-09-24.md` §8.
+> 1. **Port 2535** (§C) is not an "SMTP submission variant" — submission is 587. No
+>    payload to 2535 has been captured; the service is unknown.
+> 2. **The `sshd` uploads** (§B.2) were not all zero-byte tests. Only hash `e3b0c442…`
+>    is empty; the rest are real ELF binaries, identified in session 32 as **pan-chan**.
+> 3. **"Multi-vector" promotion** (§G, method notes) needs research scanners filtered out
+>    first. Every self-identifying IP seen on all four sensors in session 40 was a scanner.
+>    `45.177.18.132`'s Nmap identification stands; the inference from breadth does not.
+
 > **Method note:** this analysis was built from a **complete event-type inventory** of the
 > Cowrie JSON (the `eventid` histogram in §A.1), not from ad-hoc greps. That inventory
 > surfaced two categories missed on a first pass — **file uploads** (SCP-delivered payloads,
