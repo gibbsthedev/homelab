@@ -300,3 +300,29 @@
   dev enp1s0 = wired, dev wlp2s0 = WiFi. Confirmed Mint failed BACK to wired.
 - Take a FRESH router backup after a change like this. The pre-change archive
   holds the old port layout; restoring it would silently undo the migration.
+
+## 2026-09-25 -- Reboot test passed, VLAN 10 ACL, NTP started
+- REBOOT TEST: full saved config (Router mode, 3 SVIs, VLAN 20 ACL) survived
+  a cold `reload` intact. First time this was actually proven, not assumed.
+- Doing this safely depended on a DHCP RESERVATION added on the Beryl first,
+  pinning the switch's MAC to 192.168.8.165. Every VLAN 10/20 return route on
+  the Beryl targets that IP by address, not by name -- without the
+  reservation, a reboot that got a different lease would have silently taken
+  down Proxmox, both VMs, and the public sites, with no symptom pointing at
+  DHCP as the cause.
+- VLAN 10 ACL (vlan10-policy): deny lab, deny switch mgmt login, permit
+  everything else -- including VLAN 1, ON PURPOSE. These ACLs are stateless,
+  so Proxmox's REPLIES to Mint (VLAN 10 -> VLAN 1) can't be told apart from a
+  new connection by a stateless filter. Denying that direction breaks
+  management entirely. Documented as an accepted limitation: real
+  segmentation puts management on its own VLAN, separate from general VLAN 1
+  traffic -- a future project, not today's fix.
+- Same verify-by-function pattern as VLAN 20: 2 allowed / 2 denied from the
+  Proxmox console, plus DNS and the live sites both still working.
+- NTP: this firmware speaks SNTP as its own top-level command, separate from
+  `clock`. `sntp server` will decide whether it can resolve a hostname or
+  needs a raw IP -- untested going into the next session.
+- Decided (not yet built): a `networking/` folder for AT-A-GLANCE current
+  state -- topology, ACLs, switch/router config, troubleshooting -- separate
+  from `runbooks/`, which stays as the dated HISTORY of how it got there.
+  Nothing gets deleted; it's a table of contents layered on top.
