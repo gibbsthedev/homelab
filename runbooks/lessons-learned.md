@@ -326,3 +326,34 @@
   state -- topology, ACLs, switch/router config, troubleshooting -- separate
   from `runbooks/`, which stays as the dated HISTORY of how it got there.
   Nothing gets deleted; it's a table of contents layered on top.
+
+## 2026-10-29/30 -- Thin clients, OPNsense, audit, SNTP
+- Assign hardware roles by what the workload needs: monitoring is
+  write-heavy, so it got the t640's real SATA SSD; the firewall barely writes,
+  so it got the t655's eMMC-style flash plus the newer BIOS at the edge.
+- A security control blocking you on the WRONG machine is doing its job.
+  Windows' vulnerable-driver blocklist stopped HP's flasher (amifldrv64.sys)
+  on the laptop. Left ON. Solved by reproducing HP's ToolLess steps on the
+  target box from Linux instead.
+- HP BCU settings files (hpisetup.txt) are UTF-16LE with a BOM. grep sees
+  nothing; iconv to UTF-8, edit, convert back, re-add the ff fe BOM.
+- After an HP BIOS flash, load F10 defaults before blaming the OS. Both the
+  old install and the installer hung after the EFI stub until defaults were applied.
+- Install Debian WITH the network cable in. Offline, the installer silently
+  skips internet apt sources, the SSH server and NIC config.
+- Never connect a fresh firewall to a production network with an interface
+  set as LAN. OPNsense LAN = 192.168.1.1 + DHCP server = rogue DHCP on VLAN 1,
+  the same network the switch's own reserved address depends on.
+- "Not LAN" doesn't mean "no DHCP server." dnsmasq still listened on *:67 with
+  leftover ranges. Verify what is LISTENING (sockstat/ss) before plugging in.
+- The OPNsense setup wizard reassigned a WAN-only interface back to LAN.
+  Recheck interface assignment after the wizard and after every reboot.
+- One key per trust zone: a separate homelab SSH key (IdentitiesOnly yes)
+  instead of reusing the Hetzner key.
+- Records drift. An audit (show access-lists, show interfaces status,
+  qm list, ip -br a) found notes saying "not done" for things done weeks ago.
+  Check the device, not the notes.
+- A 100 Mbps link on a gigabit port: check WHAT is plugged in before blaming
+  the cable. It was Mint's Fast-Ethernet-only NIC.
+- SNTP's first sync showed a ~5.4-day offset. Every earlier switch log was
+  that far off -- unusable for correlating with other devices.
