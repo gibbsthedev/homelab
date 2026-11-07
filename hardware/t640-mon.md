@@ -1,6 +1,6 @@
 # t640-mon — HP t640 Thin Client (monitoring box)
 
-Status: **Built 2026-10-29.** Debian 13, hardened, reboot-tested. Monitoring stack not yet installed.
+Status: **Built 2026-10-29. Syslog receiver, SNMP polling and host firewall live 2026-11-06.** LibreNMS half-installed (Parts 1–5 of 8). See SESSION-44.
 
 ## Role
 Internal monitoring host: LibreNMS (SNMP polling of the SG300 and OPNsense), central syslog,
@@ -42,6 +42,18 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 - `/etc/ssh/sshd_config.d/10-hardening.conf`: `PasswordAuthentication no`, `PermitRootLogin no`
   (tested with a second session before closing the first)
 
+## Services (2026-11-06)
+| Service | Detail |
+| --- | --- |
+| Host firewall | nftables, **default deny inbound**. Allow: established/related, loopback, TCP 22+80 from Mint (`.186`, `.142`) only, UDP 514 from the switch (`.165`) only, ICMP/ICMPv6. Forward: drop. Output: accept. `/etc/nftables.conf`, enabled at boot |
+| Syslog receiver | rsyslog, UDP 514 (`/etc/rsyslog.d/10-remote.conf`), one file per sender IP in `/var/log/remote/` |
+| Log rotation | `/etc/logrotate.d/remote`: daily, 14 days, compressed |
+| SNMP client | `snmp` package; polls SG300 v2c read-only. Community string in Apple Passwords, **not here** |
+| Database | MariaDB 11.8.6, **127.0.0.1:3306 only**. DB `librenms`, user `librenms@localhost` (rights on that DB only). Password in Apple Passwords |
+| PHP | 8.4.27. Dedicated FPM pool `[librenms]` runs as `librenms`; socket `/run/php-fpm-librenms.sock` (owner `www-data`, mode 0660) |
+| LibreNMS | 26.10.0 in `/opt/librenms`, owned by system user `librenms`. Parts 6–8 (nginx, scheduler, web installer) pending |
+| Timezone | America/Chicago (system + both php.ini files); NTP synced |
+
 ## BIOS
 | Item | Value |
 | --- | --- |
@@ -77,5 +89,10 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 
 ## Next
 - [x] Beryl DHCP reservation 192.168.8.24 ↔ xx:xx:xx:xx:xx:xx (2026-10-29)
-- [ ] LibreNMS + SNMP on the SG300
-- [ ] rsyslog receiver for SG300 / OPNsense logs (with log rotation from day one)
+- [x] rsyslog receiver + 14-day rotation, SG300 sending (2026-11-06)
+- [x] SNMP v2c read-only from SG300, restricted to this host (2026-11-06)
+- [x] nftables default-deny host firewall, tested from Windows (blocked) (2026-11-06)
+- [ ] LibreNMS Part 6: nginx with Mint-only `allow` list
+- [ ] LibreNMS Part 7: scheduler timer, cron, logrotate, `lnms`
+- [ ] LibreNMS Part 8: web installer, **2FA on admin**, add SG300
+- [ ] Add OPNsense (t655-fw) as a syslog + SNMP source once its power brick is replaced
