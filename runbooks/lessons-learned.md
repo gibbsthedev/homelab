@@ -357,3 +357,25 @@
   the cable. It was Mint's Fast-Ethernet-only NIC.
 - SNTP's first sync showed a ~5.4-day offset. Every earlier switch log was
   that far off -- unusable for correlating with other devices.
+
+## 2026-11-06 -- t640-mon: syslog, SNMP, host firewall, LibreNMS start
+- Firewall BEFORE the app. The web server never had a moment where anything
+  but Mint could reach it -- important for software with recent CVEs.
+- "Timed out" vs "refused": nftables `drop` gives no answer, so the scanner
+  can't even tell the host exists. `reject` would say "refused."
+- `ct state established,related accept` is the stateful line: replies to
+  connections the box started need no rule of their own.
+- Verify by function, not by what the screen shows: the SNMP community line
+  displayed mangled after a dropped SSH session but was accepted -- snmpwalk
+  proved it.
+- Debian's snmpwalk doesn't know names like `system` (MIBs are non-free).
+  Use the numeric OID: 1.3.6.1.2.1.1. sysObjectID starting 1.3.6.1.4.1.9 = Cisco.
+- Secrets leak in screenshots AND in shell histories. MariaDB keeps typed
+  SQL (including IDENTIFIED BY passwords) in ~/.mariadb_history -- delete it.
+- Never reuse a secret across systems: the DB password matched the SNMP
+  community. One leak would have exposed both. Both changed.
+- Two PHP-FPM pools can't share a socket; the second one won't start.
+- Check the version against the CVE fix BEFORE going live:
+  `git describe --tags --abbrev=0` -> 26.10.0, past 26.2.0 and 26.3.0.
+- Test the rotation config before logs exist: `logrotate -d` is a dry run;
+  "does not exist -- skipping" just means nothing to rotate yet.
