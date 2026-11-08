@@ -55,7 +55,8 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 | Web server | nginx, `/etc/nginx/sites-enabled/librenms.conf`: root `/opt/librenms/html`, `allow` Mint `.186`/`.142`, `deny all`, dotfiles denied |
 | Scheduling | `librenms-scheduler.timer` (every minute), `/etc/cron.d/librenms` (5-min polling + daily update), `/etc/logrotate.d/librenms` |
 | Python deps | From **apt**, not pip: python3-pymysql, -dotenv, -redis, -setuptools, -psutil, -command-runner |
-| Monitored devices | SG300 `192.168.8.165` (SNMP v2c, community held in LibreNMS's credential store) |
+| Monitored devices | 5 (SESSION-46): SG300 `.8.165`, pve-node1 `.10.2`, itself `.8.24`, docker-agents `.10.10`, hermes `.10.206`. SNMP v2c, unique community per device, held in LibreNMS's credential store |
+| Own SNMP agent | snmpd on `127.0.0.1:161` + `192.168.8.24:161`, answers only itself. Added by real IP, not 127.0.0.1 (LibreNMS sees every host's loopback as a duplicate) |
 | Timezone | America/Chicago (system + both php.ini files); NTP synced |
 
 ## BIOS
@@ -98,6 +99,7 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 - [x] nftables default-deny host firewall, tested from Windows (blocked) (2026-11-06)
 - [x] LibreNMS Parts 6–8: nginx (Mint-only), scheduler/cron/logrotate, web installer, Validate clean (2026-11-07)
 - [x] SG300 added as device 1 (2026-11-07)
-- [ ] Add t640-mon itself and pve-node1 (snmpd)
+- [x] Added pve-node1, t640-mon itself, VM 100, VM 101 — 5 devices (2026-11-08, SESSION-46)
+- [ ] Beryl as device (deferred — default `public` community, gateway risk)
 - [ ] **2FA on the LibreNMS admin** (deferred until devices are added — accepted risk, see SESSION-45 §6)
 - [ ] Add OPNsense (t655-fw) as a syslog + SNMP source once its power brick is replaced
