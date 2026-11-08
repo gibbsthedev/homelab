@@ -379,3 +379,24 @@
   `git describe --tags --abbrev=0` -> 26.10.0, past 26.2.0 and 26.3.0.
 - Test the rotation config before logs exist: `logrotate -d` is a dry run;
   "does not exist -- skipping" just means nothing to rotate yet.
+
+## 2026-11-07 -- LibreNMS live
+- Read Validate's suggested fix before running it. Its generic
+  `pip3 install -r requirements.txt` fails on Debian 13 (externally managed)
+  and would bypass apt security updates. Find WHICH package is missing, then
+  install the Debian version (`apt-cache policy python3-<name>`).
+- A blank error (`Python3 module issue found: ''`) means the checker itself
+  crashed. Run the checker by hand to see the real traceback.
+- When splitting a long command into shorter ones, diff the result against the
+  original list. python3-setuptools got dropped that way.
+- A `#` at the start of a .env line means the setting does nothing. Different
+  files, different comment characters: `#` in .env/shell, `;` in php.ini.
+- Laravel apps cache config: after editing .env, `php artisan config:clear`.
+- Isolate before changing: when the installer said "access denied," test the
+  same password with `mysql -u librenms -p` first. Password vs. form typo.
+- Avoid ' " \ in passwords that go into SQL statements -- they break quoting.
+- Pick ONE scheduler per job. dist/ shipped both a systemd timer and a cron
+  version of the same scheduler; running both = double runs.
+- `echo $?` = exit code of the last command. 0 = success. How scripts and cron
+  know whether something worked.
+- LibreNMS 26.x keeps SNMP communities in a credentials store, not per device.
