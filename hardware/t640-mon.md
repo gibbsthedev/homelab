@@ -1,6 +1,6 @@
 # t640-mon — HP t640 Thin Client (monitoring box)
 
-Status: **Built 2026-10-29. Syslog receiver, SNMP polling and host firewall live 2026-11-06.** LibreNMS half-installed (Parts 1–5 of 8). See SESSION-44.
+Status: **Built 2026-10-29. Syslog receiver, SNMP polling and host firewall live 2026-11-06.** LibreNMS live and validating clean 2026-11-07, monitoring the SG300. See SESSION-44 and SESSION-45.
 
 ## Role
 Internal monitoring host: LibreNMS (SNMP polling of the SG300 and OPNsense), central syslog,
@@ -51,7 +51,11 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 | SNMP client | `snmp` package; polls SG300 v2c read-only. Community string in Apple Passwords, **not here** |
 | Database | MariaDB 11.8.6, **127.0.0.1:3306 only**. DB `librenms`, user `librenms@localhost` (rights on that DB only). Password in Apple Passwords |
 | PHP | 8.4.27. Dedicated FPM pool `[librenms]` runs as `librenms`; socket `/run/php-fpm-librenms.sock` (owner `www-data`, mode 0660) |
-| LibreNMS | 26.10.0 in `/opt/librenms`, owned by system user `librenms`. Parts 6–8 (nginx, scheduler, web installer) pending |
+| LibreNMS | 26.10.0 in `/opt/librenms`, owned by system user `librenms`. Web UI `http://192.168.8.24` (Mint only). Non-default admin username. Validate: clean |
+| Web server | nginx, `/etc/nginx/sites-enabled/librenms.conf`: root `/opt/librenms/html`, `allow` Mint `.186`/`.142`, `deny all`, dotfiles denied |
+| Scheduling | `librenms-scheduler.timer` (every minute), `/etc/cron.d/librenms` (5-min polling + daily update), `/etc/logrotate.d/librenms` |
+| Python deps | From **apt**, not pip: python3-pymysql, -dotenv, -redis, -setuptools, -psutil, -command-runner |
+| Monitored devices | SG300 `192.168.8.165` (SNMP v2c, community held in LibreNMS's credential store) |
 | Timezone | America/Chicago (system + both php.ini files); NTP synced |
 
 ## BIOS
@@ -92,7 +96,8 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 - [x] rsyslog receiver + 14-day rotation, SG300 sending (2026-11-06)
 - [x] SNMP v2c read-only from SG300, restricted to this host (2026-11-06)
 - [x] nftables default-deny host firewall, tested from Windows (blocked) (2026-11-06)
-- [ ] LibreNMS Part 6: nginx with Mint-only `allow` list
-- [ ] LibreNMS Part 7: scheduler timer, cron, logrotate, `lnms`
-- [ ] LibreNMS Part 8: web installer, **2FA on admin**, add SG300
+- [x] LibreNMS Parts 6–8: nginx (Mint-only), scheduler/cron/logrotate, web installer, Validate clean (2026-11-07)
+- [x] SG300 added as device 1 (2026-11-07)
+- [ ] Add t640-mon itself and pve-node1 (snmpd)
+- [ ] **2FA on the LibreNMS admin** (deferred until devices are added — accepted risk, see SESSION-45 §6)
 - [ ] Add OPNsense (t655-fw) as a syslog + SNMP source once its power brick is replaced
