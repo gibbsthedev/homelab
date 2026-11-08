@@ -400,3 +400,24 @@
 - `echo $?` = exit code of the last command. 0 = success. How scripts and cron
   know whether something worked.
 - LibreNMS 26.x keeps SNMP communities in a credentials store, not per device.
+
+## 2026-11-08 -- SNMP on every host
+- LibreNMS records every IP a device has, loopback included. Adding a second
+  Linux host as 127.0.0.1 = "duplicate". Add hosts by their real IP.
+- `UNCONN` in `ss -ulnp` is normal for UDP -- it's connectionless.
+- Agent listening + client timing out = something in between. tcpdump on the
+  target shows whether the packet arrives; then check the host firewall.
+- A "Docker VM" still had UFW active with default DROP. Check `ufw status` /
+  `iptables -S INPUT` before assuming a host has no firewall.
+- Same job, three firewalls: nftables `ip saddr X accept`, UFW
+  `allow from X to any port 161 proto udp`, firewalld rich rule.
+- Replace distro default snmpd.conf files entirely -- they ship a `public` community.
+- One community string per device, like passwords.
+- RHEL: dnf not apt, vi not nano, firewalld on by default, SELinux denials in
+  `ausearch -m avc`. Typos make new files: `vi snmp.conf` created an empty one.
+- Updates install kernels; only reboots load them. needrestart says so --
+  monitoring uptime (40 days) says so too.
+- Discovery (6 h) refreshes what a device IS (name, location, ports);
+  polling (5 min) collects numbers. Changed location? Rediscover.
+- Cisco CLI: quote values with spaces.
+- A switch's CPU graph is flat by design -- the ASIC forwards. Look at ports.
