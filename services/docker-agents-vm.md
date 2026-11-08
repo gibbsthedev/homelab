@@ -21,3 +21,4 @@ Hosts Docker + migrated agents (OpenClaw) from AWS. Runs a 12-agent AI system.
 - 2026-07-17: VM created, Docker CE installed, agents migrated from AWS via rsync pull
 - 2026-08-21: Moved to static IP 192.168.8.10 (MAC reservation), resized 4 vCPU/8GB → 3 vCPU/6GB to make room for the new Hermes VM on the same host — decision made after measuring actual RAM usage (well under allocation) rather than guessing at need
 - 2026-09-20: Moved to VLAN 10, 192.168.10.10 static (SESSION-36)
+- 2026-11-08: snmpd added (192.168.10.10:161, answers only t640-mon 192.168.8.24). Found UFW active with default DROP and only OpenSSH allowed; added `ufw allow from 192.168.8.24 to any port 161 proto udp`. needrestart flagged pending kernel 6.12.111 → 6.12.115 (reboot deferred to planned window). Docker was not restarted. (SESSION-46)
