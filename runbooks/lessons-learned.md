@@ -421,3 +421,24 @@
   polling (5 min) collects numbers. Changed location? Rediscover.
 - Cisco CLI: quote values with spaces.
 - A switch's CPU graph is flat by design -- the ASIC forwards. Look at ports.
+
+## 2026-11-08/09 -- First alerts, t655 back online
+- Alerts that are always red stop being read. Ignore expected-down ports
+  (alerting off, polling on) so every alert means something.
+- Monitoring finds documentation drift: a "port down" alert proved t640-mon
+  was on gi5, not gi6.
+- Read an alert rule's logic, not its name. "Windows Disk Usage" had
+  os = "windows" and would never fire here.
+- A disk rule on "/" doesn't see other mounts or a Proxmox thin pool.
+  lvs found a 97.9%-full disk no alert knew about.
+- Confirm a firmware update by the version number afterwards. The first
+  OPNsense update silently never finished.
+- A firewall rule does nothing until Apply. Live View shows the block and
+  which rule decided -- read it before changing anything.
+- OPNsense anti-lockout follows LAN; with no LAN it sat on WAN and let all of
+  VLAN 1 reach the GUI. Test from a device that should be denied.
+- Monitoring a host needs ping too: LibreNMS uses ICMP for up/down.
+- Keyboard walks (mnbvcxz…) look random but are in every wordlist.
+  Generate secrets: openssl rand -hex 16. Placeholder in screenshots.
+- Same safe bring-up every time: label (WAN), reality (nothing on :67),
+  THEN plug in.
