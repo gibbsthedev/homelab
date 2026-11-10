@@ -442,3 +442,16 @@
   Generate secrets: openssl rand -hex 16. Placeholder in screenshots.
 - Same safe bring-up every time: label (WAN), reality (nothing on :67),
   THEN plug in.
+
+## 2026-11-10 -- Firewall logs centralized, OpenClaw parking plan
+- Open the receiving side first: the sender's logs go nowhere until the
+  collector's firewall allows them. One nftables set covers several sources.
+- Real traffic beats a staged test: within seconds the filterlog showed a
+  blocked DHCP request -- proof the rogue-DHCP fix holds.
+- Every address on the network should have a name. .213 = my phone.
+- "Park" a VM with a clean shutdown, not Hibernate: saved RAM state is tied
+  to the hypervisor version and may not resume after months of updates.
+- Inventory dependencies before shutting anything down, read-only first.
+  The one real dependency (blog deploys) wasn't obvious.
+- vzdump honors backup=0 per disk -- a "full" backup may not be full.
+- Moving a credential to a new host = issue a new scoped token, revoke the old.
