@@ -55,7 +55,7 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 | Web server | nginx, `/etc/nginx/sites-enabled/librenms.conf`: root `/opt/librenms/html`, `allow` Mint `.186`/`.142`, `deny all`, dotfiles denied |
 | Scheduling | `librenms-scheduler.timer` (every minute), `/etc/cron.d/librenms` (5-min polling + daily update), `/etc/logrotate.d/librenms` |
 | Python deps | From **apt**, not pip: python3-pymysql, -dotenv, -redis, -setuptools, -psutil, -command-runner |
-| Monitored devices | 5 (SESSION-46): SG300 `.8.165`, pve-node1 `.10.2`, itself `.8.24`, docker-agents `.10.10`, hermes `.10.206`. SNMP v2c, unique community per device, held in LibreNMS's credential store |
+| Monitored devices | 6: + t655-fw `.8.195` (2026-11-09, SESSION-47). Earlier 5 (SESSION-46): SG300 `.8.165`, pve-node1 `.10.2`, itself `.8.24`, docker-agents `.10.10`, hermes `.10.206`. SNMP v2c, unique community per device, held in LibreNMS's credential store |
 | Own SNMP agent | snmpd on `127.0.0.1:161` + `192.168.8.24:161`, answers only itself. Added by real IP, not 127.0.0.1 (LibreNMS sees every host's loopback as a duplicate) |
 | Timezone | America/Chicago (system + both php.ini files); NTP synced |
 
@@ -103,3 +103,5 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 - [ ] Beryl as device (deferred — default `public` community, gateway risk)
 - [ ] **2FA on the LibreNMS admin** (deferred until devices are added — accepted risk, see SESSION-45 §6)
 - [ ] Add OPNsense (t655-fw) as a syslog + SNMP source once its power brick is replaced
+- [x] Alert rules: "Space on / ≥90% / ≥95%" (5-min delay, recovery on); expected-down ports ignored (2026-11-08)
+- [ ] Alert transport (Telegram); cover non-root mounts + Proxmox thin pool
