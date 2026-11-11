@@ -455,3 +455,18 @@
   The one real dependency (blog deploys) wasn't obvious.
 - vzdump honors backup=0 per disk -- a "full" backup may not be full.
 - Moving a credential to a new host = issue a new scoped token, revoke the old.
+
+## 2026-11-11 -- Maintenance window, boot order
+- Copies before changes: a snapshot on the same disk is a rollback point,
+  not a backup. The backup is the copy that lives somewhere else.
+- A Proxmox snapshot is a thin volume. It "promises" the disk's size but only
+  grows when the disk changes -- nearly free on a stopped VM.
+- Grow a disk outside in: virtual disk -> partition -> PV -> LV + filesystem.
+  Skip a layer and the space is invisible above it. XFS never shrinks.
+- RAM handed to one VM is RAM another VM can't have back. 12 + 6 > 16.
+- On Proxmox: apt full-upgrade, then reboot -- kernels load only at boot.
+- Detach an ISO before deleting it, or the VM won't start next boot.
+- Read BootCurrent, not just BootOrder. The order you see afterwards may
+  already be "repaired" -- shim's fallback re-creates the boot entry.
+- PXE first means an unattended reboot never comes back. Fix it in the
+  OS AND the BIOS, then prove it with a watched reboot.
