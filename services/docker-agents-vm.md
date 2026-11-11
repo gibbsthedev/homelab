@@ -1,5 +1,7 @@
 # VM: docker-agents / "Tuck" (VMID 100)
 
+**STATUS: PARKED since 2026-11-11** (clean shutdown, `onboot 0`, disabled in LibreNMS). See SESSION-49.
+
 ## Purpose
 Hosts Docker + migrated agents (OpenClaw) from AWS. Runs a 12-agent AI system.
 
@@ -24,3 +26,4 @@ Hosts Docker + migrated agents (OpenClaw) from AWS. Runs a 12-agent AI system.
 - 2026-11-08: snmpd added (192.168.10.10:161, answers only t640-mon 192.168.8.24). Found UFW active with default DROP and only OpenSSH allowed; added `ufw allow from 192.168.8.24 to any port 161 proto udp`. needrestart flagged pending kernel 6.12.111 → 6.12.115 (reboot deferred to planned window). Docker was not restarted. (SESSION-46)
 - 2026-11-08: rebooted (planned) to load kernel 6.12.115 — confirmed in LibreNMS. Memory flat ~3 GB after; ~0.5–0.8 GB swap in use. **OpenClaw backup disk (vm-100-disk-1, 16 GB) at 97.9% per `lvs` — check rotation.**
 - 2026-11-10: Decision to **park** (clean shutdown, not hibernate) and give node1 to Hermes until a second node exists. Hermes's read-only inventory: only blog Cloudflare Pages deployment must move first; preserve both disks, Telegram identity, memory, trading data. Shutdown planned later this week — see SESSION-48.
+- 2026-11-11: **Parked.** Copies first (VM snapshot on the Windows PC, OpenClaw backup on Hermes, Proxmox snapshot kept on the thin pool — nearly free while the VM is off, but not a backup). `qm shutdown 100`, `qm set 100 --onboot 0`; LibreNMS device disabled. Its 6 GB RAM went to Hermes — **lower Hermes's RAM before starting this VM again** (host is 16 GB). (SESSION-49)
