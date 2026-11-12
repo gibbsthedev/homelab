@@ -45,8 +45,8 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 ## Services (2026-11-06)
 | Service | Detail |
 | --- | --- |
-| Host firewall | nftables, **default deny inbound**. Allow: established/related, loopback, TCP 22+80 from Mint (`.186`, `.142`) only, UDP 514 from the switch (`.165`) and t655-fw (`.195`) only, ICMP/ICMPv6. Forward: drop. Output: accept. `/etc/nftables.conf`, enabled at boot |
-| Syslog receiver | rsyslog, UDP 514 (`/etc/rsyslog.d/10-remote.conf`), one file per sender IP in `/var/log/remote/`. Senders: SG300 (.165), t655-fw (.195, OPNsense filterlog) |
+| Host firewall | nftables, **default deny inbound**. Allow: established/related, loopback, TCP 22+80 from Mint (`.186`, `.142`) only, UDP 514 from the switch (`.165`), t655-fw (`.195`) and the Beryl (`.1`) only, ICMP/ICMPv6. Forward: drop. Output: accept. `/etc/nftables.conf`, enabled at boot |
+| Syslog receiver | rsyslog, UDP 514 (`/etc/rsyslog.d/10-remote.conf`), one file per sender IP in `/var/log/remote/`. Senders: SG300 (.165), t655-fw (.195, OPNsense filterlog), Beryl (.1, OpenWrt logread: DHCP, Wi-Fi assoc/deauth, WAN events) |
 | Log rotation | `/etc/logrotate.d/remote`: daily, 14 days, compressed |
 | SNMP client | `snmp` package; polls SG300 v2c read-only. Community string in Apple Passwords, **not here** |
 | Database | MariaDB 11.8.6, **127.0.0.1:3306 only**. DB `librenms`, user `librenms@localhost` (rights on that DB only). Password in Apple Passwords |
@@ -103,5 +103,7 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 - [ ] Beryl as device (deferred — default `public` community, gateway risk)
 - [ ] **2FA on the LibreNMS admin** (deferred until devices are added — accepted risk, see SESSION-45 §6)
 - [x] OPNsense (t655-fw) added as SNMP (2026-11-09) and syslog source (2026-11-10, SESSION-48); nftables 514 now allows { .165, .195 }
+- [x] Beryl (beryl-ax) added as SNMP device 7 and syslog source (2026-11-11, SESSION-50); nftables 514 = { .1, .165, .195 }
+- [x] Alerts → Telegram (operation "Telegram – notify" on every rule, 2026-11-11)
 - [x] Alert rules: "Space on / ≥90% / ≥95%" (5-min delay, recovery on); expected-down ports ignored (2026-11-08)
 - [ ] Alert transport (Telegram); cover non-root mounts + Proxmox thin pool
