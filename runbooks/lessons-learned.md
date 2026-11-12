@@ -470,3 +470,48 @@
   already be "repaired" -- shim's fallback re-creates the boot entry.
 - PXE first means an unattended reboot never comes back. Fix it in the
   OS AND the BIOS, then prove it with a watched reboot.
+
+## 2026-11-11 -- Backups audited, boot fixed, alerts on the phone, Beryl
+- Audit backups by listing the files, not by trusting the job. The folder
+  held only VM 100 dumps: Hermes had never been backed up nightly.
+- A task log is not a backup. Check the file type and size: a real
+  Proxmox backup is a .vma.zst of several GB, on another machine.
+- Read the offsite script: "newest dump of any VM" decides what survives.
+- Lenovo BIOS sorts the boot order by device GROUP. efibootmgr can't
+  out-rank a Network group that sits first -- exclude it in the BIOS.
+- read -s VAR keeps a secret off the screen AND out of history, and the
+  command that uses ${VAR} can be repeated with the up arrow.
+- A transport "Test" proves delivery, not alerting. Only a real fault
+  (cable pulled) proves rule -> notification.
+- LibreNMS 26.x: rule -> OPERATION -> transport. No operation = alert
+  raised, nothing sent. Check the docs for YOUR version.
+- One bot per job. Revoke exposed tokens instead of reusing the bot.
+- Stock OpenWrt snmpd: public from anywhere, a read-WRITE community,
+  IPv6 copies of both, listening on WAN. Stop it right after install.
+- uci stages changes until commit -- same idea as Apply on a firewall.
+- Test the old door is shut: -c public must time out.
+- An alert minutes after adding a device is the FIRST LOOK, not a new fault.
+- Routers have one Wi-Fi client per radio (apcli0 = 2.4, apclix0 = 5).
+  Confirm WHICH interface carries a link before calling it dead -- and
+  check the GUI too. I misread an idle radio as a dead backup WAN.
+- logread = OpenWrt's RAM log; it holds history before syslog exists.
+- DE-AUTH "from STA" = the client left. A 9-minute cycle = power saving.
+- The forwarder logs itself: "Logread connected to <ip>:514" is the proof.
+
+## 2026-11-12 -- Phase 1 build: VLAN 20 behind OPNsense
+- Build the risky thing where nothing lives yet. VLAN 20 was empty, so
+  every step could be undone without touching anything in use.
+- Read the current state before writing the change: gi5 was already a
+  trunk. The docs said access. Commands beat docs.
+- Hand off an IP: remove it from the old owner first, then add it to the
+  new one. Same address, different device behind it, clients don't notice.
+- Don't save the switch config until the change is proven -- a reboot
+  is then a free rollback.
+- Delete rules nobody wrote. "Defunct" rules wait for their interface.
+- dnsmasq with no interface selected listens on ALL interfaces. Its own
+  help text says so. Always pick the interface.
+- Read the action icon, not the description. "Internet only" was a Block.
+- Third octet = VLAN number. A log line tells you the network at a glance.
+- Leave the low addresses for static hosts; give DHCP a recognisable range.
+- show running-config prints secrets. Don't photograph it.
+- NAT at the firewall makes the old return route on the Beryl stale.
