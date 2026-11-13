@@ -545,3 +545,11 @@
   Log the API's reply: "message text is empty" pointed at text_id= vs text=.
 - Debug a pipeline one layer at a time: process -> log line -> filter ->
   delivery -> the exact request.
+
+## 2026-11-13 -- Locked logs, sandboxed watcher
+- Group membership, not open permissions: logs 0640 root:adm, add yourself to adm.
+- Validate before restart (rsyslogd -N1). A dead syslog server loses UDP logs.
+- A service that handles attacker-controlled text shouldn't run as root.
+- systemd-analyze security turns hardening into a number: 9.6 -> 8.5 -> 1.7.
+- Tighten, then TEST. A low score that breaks the service is worth nothing.
+- Exit root shells when done.
