@@ -107,3 +107,8 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 - [x] Alerts → Telegram (operation "Telegram – notify" on every rule, 2026-11-11)
 - [x] Alert rules: "Space on / ≥90% / ≥95%" (5-min delay, recovery on); expected-down ports ignored (2026-11-08)
 - [ ] Alert transport (Telegram); cover non-root mounts + Proxmox thin pool
+
+## Findings 2026-11-13 (SESSION-53)
+- Firewall log now carries **Suricata alerts** too: `grep suricata /var/log/remote/192.168.8.195.log`
+- [ ] `/var/log/remote/*.log` are world-readable (grep works without sudo) → rsyslog `$FileCreateMode 0640`, group `adm`
+- [ ] Watcher service: Suricata Priority 1–2 → Telegram
