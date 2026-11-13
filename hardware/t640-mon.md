@@ -110,5 +110,5 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 
 ## Findings 2026-11-13 (SESSION-53)
 - Firewall log now carries **Suricata alerts** too: `grep suricata /var/log/remote/192.168.8.195.log`
-- [ ] `/var/log/remote/*.log` are world-readable (grep works without sudo) → rsyslog `$FileCreateMode 0640`, group `adm`
-- [x] `ids-telegram.service`: Suricata Priority 1–2 → Telegram, 1 msg/min (env `/etc/ids-telegram.env` 0600, replies in `/var/log/ids-telegram.log`) — SESSION-53
+- [x] `/var/log/remote/` locked: files `0640 root:adm`, dir `0750` (rsyslog `fileGroup/fileCreateMode`, logrotate `create 0640 root adm`); scgiky in `adm` — SESSION-54
+- [x] `ids-telegram.service`: Suricata Priority 1–2 → Telegram, 1 msg/min — SESSION-53. Since SESSION-54 runs as system user **idsalert** (in `adm`), env `root:idsalert 0640`, systemd sandbox, `systemd-analyze security` **1.7 OK**
