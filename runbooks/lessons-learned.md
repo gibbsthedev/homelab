@@ -514,4 +514,30 @@
 - Third octet = VLAN number. A log line tells you the network at a glance.
 - Leave the low addresses for static hosts; give DHCP a recognisable range.
 - show running-config prints secrets. Don't photograph it.
-- NAT at the firewall makes the old return route on the Beryl stale.
+- NAT at the firewall makes the old return route on the Beryl stale.- Do the backup math: dump size x (keep-last + 1), because vzdump writes
+  the new dump before pruning. 16.8 GB x 4 would have filled the host.
+- First fstrim after boot reports ALL free space. Prove it with lvs Data%.
+- Check the timezone on every box. "02:00" on Proxmox was 8 PM local.
+
+## 2026-11-13 -- Phase 1 proven, first red/blue exercise
+- A blocked attack is invisible if the device that blocked it doesn't log.
+  The switch ACL ate a whole nmap sweep: attacker blind, defender blind.
+- Do the math on the log count: 2048 = 256 hosts x 4 probes x 2 tries.
+  The logs describe the attacker's tool.
+- Segmentation protects only what's behind it. Lab attacker saw 0 hosts;
+  home-Wi-Fi attacker saw everything and the firewall saw nothing.
+- Two interfaces up = Linux picks one route. Check with ip route get <ip>.
+- Identify hardware from dmesg/lsusb: the "RTL8153" adapter was an ASIX AX88179B.
+- On battery, USB power saving can kill a USB NIC. Lab on the charger.
+- Correlate in UTC. Attacker at -10:00, defender at -06:00, same 07:37Z.
+
+## 2026-11-13 -- Suricata IDS on the lab
+- An empty alert list proves nothing until the test itself is proven.
+  testmynids.org had expired -- the test never sent the signature.
+- Make your own trigger: send the exact text the rule matches, over http.
+- IDS mode = alert, not drop. Watch first; enforce later.
+- An alert in the GUI isn't centralized until syslog output is on AND applied.
+- The firewall logs who looked at the alerts (configd "query suricata alerts").
+- Read warnings: "syslog output deprecated" = a future update stops forwarding.
+- Rules have a direction. An inbound scan rule is blind to an outbound scan.
+- Logs on the collector should be 0640, not world-readable.

@@ -204,6 +204,39 @@ the NAT and hands it to testkit. No rule is needed for replies: that's "stateful
 
 ---
 
+## 5. Morning checks (05:00–05:30) — first Hermes backup, and a disk-full risk
+
+| Check | Result |
+|---|---|
+| R2 bucket | One object: `vzdump-qemu-101-2026_11_12-02_00_02.vma.zst`, **16.84 GB**. The script swapped OpenClaw out as predicted ✅ |
+| R2 cost | 6.84 GB over the 10 GB free tier × $0.015/GB-month ≈ **$0.10/month**. The dashboard's "27.28 GB" bucket size is a lagging average that still counts OpenClaw |
+| Switch credential | Rotated community entered in LibreNMS's credential store ✅ |
+| Mint clock | `timedatectl set-timezone America/Chicago` + `set-local-rtc 0` (hardware clock in UTC) ✅ |
+
+### Disk-full risk found and fixed
+A 16.84 GB Hermes dump × keep-last 3, with vzdump writing the new dump **before** pruning:
+~18 GB base + dump #1 → … → **during dump #3 ≈ 69 GB of a 68 GB pve-root**. The host would
+have filled on the third night, taking Hermes and the sites down with it.
+
+Fixes:
+- **Retention → keep-last 2** (peak = 3 dumps, which fits).
+- **TRIM inside Hermes:** `sudo fstrim -av` → /boot, `/srv/storage` (the 20 GB scsi1, purpose
+  now known), `/` trimmed. The first run after boot reports *all* free space, so the numbers
+  aren't "freed"; the real proof is `lvs` Data% on the host and the next dump's size.
+- **`fstrim.timer` enabled** on Hermes (RHEL ships it disabled), so deleted files never
+  silently inflate backups again.
+
+### Proxmox runs on UTC
+The dump is named `…02_00_02` but R2 shows the upload at 21:40 CST on Nov 11: **"02:00" is
+UTC = 8 PM local.** The nightly backup runs every evening. Third timezone finding this
+session (switch, Mint, Proxmox). To decide: `timedatectl set-timezone America/Chicago` on Proxmox.
+
+### Seen on screen
+"Too many authentication failures" + **1 failed login from 192.168.10.2** on Hermes: a
+mistyped password, harmless, but Hermes still accepts **password** SSH (SSH-hardening to-do).
+
+---
+
 ## State at end of session
 
 ```
@@ -227,9 +260,11 @@ VLAN 20 (lab) ── gi3 ── [ACL vlan20-policy] ── SG300 ══ gi5 trun
 ## Follow-ups
 - [ ] Re-run the DHCP-block grep (post-dnsmasq timestamps)
 - [ ] Step 8 tests · save switch config · post-phase1 OPNsense backup
-- [ ] Update LibreNMS credential for the rotated switch community
+- [x] LibreNMS credential updated for the rotated switch community
 - [ ] SG300: replace the `cisco` admin user · set timezone (`clock timezone`)
-- [ ] Mint: fix timezone
+- [x] Mint: timezone fixed (05:14)
+- [ ] Proxmox: timezone (backups run at 8 PM local, not 2 AM)
+- [ ] Next check: tonight's Hermes dump size + `df -h /` on Proxmox
 - [ ] Beryl: remove the stale route `192.168.20.0/24 via 192.168.8.165`
 - [ ] Then: red/blue exercise (nmap from the lab, watch the logs) → Suricata on the t655
-- [ ] Carried: Hermes first-backup check · 2FA · Proxmox SSH hardening · Beryl firmware
+- [ ] Carried: 2FA · Proxmox SSH hardening · Beryl firmware
