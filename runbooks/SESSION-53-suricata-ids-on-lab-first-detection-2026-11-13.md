@@ -1,4 +1,4 @@
-# SESSION 53 — Suricata IDS on the Lab: First Detection, Centrally Logged — 2026-11-13 (night)
+# SESSION 53 — Suricata IDS on the Lab: Detection → Central Log → Phone — 2026-11-13 (night)
 
 **Status: COMPLETE.** The firewall now **detects** attacks, not just blocks them. A test attack
 from the lab raised a Suricata alert on the t655, and the alert reached the central log on
@@ -8,6 +8,7 @@ t640-mon. Next: push high-priority alerts to the phone.
 
 ```
 testkit (lab) ──► vlan01 [Suricata, IDS mode] ──► alert ──► syslog ──► t640-mon /var/log/remote/192.168.8.195.log
+                                                                         └─► ids-telegram.service ──► alerts bot ──► 📱
 ```
 
 ---
@@ -87,14 +88,62 @@ written for **inbound** traffic ($EXTERNAL_NET → $HOME_NET), and this is outbo
 
 ---
 
+## 6. Alerts to the phone — `ids-telegram.service` on t640-mon
+
+LibreNMS doesn't read the rsyslog files, so a small watcher does it.
+
+| File | Purpose |
+|---|---|
+| `/etc/ids-telegram.env` (root, **0600**) | `TOKEN=` / `CHAT=` — same alerts bot as LibreNMS. No secrets in the script |
+| `/usr/local/bin/ids-telegram.sh` (0755) | The watcher |
+| `/etc/systemd/system/ids-telegram.service` | Starts on boot, `Restart=always` |
+| `/var/log/ids-telegram.log` | Telegram's reply for every send (never contains the token) |
+
+```bash
+#!/bin/bash
+# Send Suricata Priority 1-2 alerts from the firewall log to Telegram
+. /etc/ids-telegram.env
+LOG=/var/log/remote/192.168.8.195.log
+last=0
+tail -F -n0 "$LOG" | grep --line-buffered 'suricata.*Priority: [12]' | while read -r line; do
+  now=$(date +%s)
+  [ $((now - last)) -lt 60 ] && continue        # rate limit: max 1 message/minute
+  last=$now
+  msg=$(echo "$line" | sed 's/.*suricata\[[0-9]*\]: //' | cut -c1-300)
+  curl -s -m 10 "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+    --data-urlencode "chat_id=${CHAT}" \
+    --data-urlencode "text=IDS alert: ${msg}" >> /var/log/ids-telegram.log 2>&1
+done
+```
+
+### Debugging it — four layers, one at a time
+| Symptom | Check | Finding |
+|---|---|---|
+| No message | `systemctl status` | Running; CGroup showed the full pipeline (tail → grep → loop) ✅ |
+| `journalctl` empty | Hint text | Not in group `adm`; and curl output went to /dev/null — nothing to see anyway |
+| `grep 21004988 …` empty | The command itself | **Typo** (extra 8). Real count: 17 alerts in the log ✅ |
+| Still no message | History | The env file was edited **after** the service started → it still held old values. **Restart = reload** |
+| Still no message | Telegram test from root shell (`sudo -i; . env; curl …`) | Delivery works → the bug is inside the script |
+| — | Redirected curl output to a log | **`400 Bad Request: message text is empty`** |
+| — | `cat` the script | **`text_id=`** instead of **`text=`** — Telegram ignored the unknown field. Fixed → 📱 ✅ |
+
+Lessons: change a config → restart the service; bash never complains about wrong names,
+the API does; keep the API's reply in a log so the next failure explains itself.
+
+Each test curl produced **two** alerts (same source port): one connection matched as a packet
+and as a reassembled stream. The rate limit sends only one.
+
+---
+
 ## State at end of session
 - Suricata 8.x on t655, **IDS mode on LAB**, ET open scan / attack_response / policy.
 - Alerts in the GUI **and** forwarded to t640-mon via syslog.
 - Detection proven with SID 2100498 from 192.168.20.185.
+- **Priority 1–2 alerts reach the phone** within seconds via `ids-telegram.service` (rate-limited 1/min).
 
 ## Next
-- [ ] **Alerts to the phone:** small watcher service on t640-mon → Telegram (alerts bot), Priority 1–2
-      only, rate-limited, token in a root-only file (`chmod 600`)
+- [x] Alerts to the phone (§6)
+- [ ] Watcher: run as a non-root user once logs are 0640/group `adm`; add a daily summary of suppressed alerts
 - [ ] Switch Suricata syslog → **EVE syslog output** (deprecation)
 - [ ] Try test 2 (nmap NSE); learn rule direction
 - [ ] rsyslog file permissions 0640 on t640-mon

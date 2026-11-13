@@ -540,4 +540,8 @@
 - The firewall logs who looked at the alerts (configd "query suricata alerts").
 - Read warnings: "syslog output deprecated" = a future update stops forwarding.
 - Rules have a direction. An inbound scan rule is blind to an outbound scan.
-- Logs on the collector should be 0640, not world-readable.
+- Logs on the collector should be 0640, not world-readable.- A service reads its config at start. Edit the env file -> restart it.
+- Bash treats a wrong field/variable name silently; the API rejects it.
+  Log the API's reply: "message text is empty" pointed at text_id= vs text=.
+- Debug a pipeline one layer at a time: process -> log line -> filter ->
+  delivery -> the exact request.
