@@ -44,9 +44,9 @@ flowchart TB
     subgraph v10["VLAN 10 · servers · 192.168.10.x"]
         pve["Proxmox host"]
         hermes["Hermes VM<br/>websites"]
-        oc["OpenClaw VM<br/>parked"]
+        oc["OpenClaw VM<br/>agents"]
         pve --- hermes
-        pve -.- oc
+        pve --- oc
     end
 
     subgraph v20["VLAN 20 · lab · 192.168.20.x"]
@@ -103,7 +103,7 @@ flowchart TB
 |---|---|---|---|
 | gi2 | Proxmox host (Lenovo M720q) | 192.168.10.2 | Runs the virtual machines |
 | — | Hermes VM | 192.168.10.206 | Hosts my websites |
-| — | OpenClaw VM | 192.168.10.10 | Parked until I have a second server |
+| — | OpenClaw VM | 192.168.10.10 | Runs my OpenClaw agents |
 
 Gateway: the switch, 192.168.10.1. The Beryl has a return route for 192.168.10.0/24 pointing at the switch (192.168.8.165). Without it, server traffic reaches the internet but the replies never find their way back (asymmetric routing).
 
@@ -282,7 +282,7 @@ Proxmox is not behind the guard yet. The home room (VLAN 1) can still reach the 
 
 | Device | Role | Notes |
 |---|---|---|
-| **Lenovo ThinkCentre M720q** (`pve-node1`) | Proxmox VE host | Runs Hermes (my websites). OpenClaw is parked until I have a second server |
+| **Lenovo ThinkCentre M720q** (`pve-node1`) | Proxmox VE host, **64 GB RAM** | Runs Hermes (my websites) and OpenClaw (my agents), with room left for the SIEM |
 | **HP t655** (`t655-fw`) | Firewall | OPNsense 26.7: lab gateway, DHCP, DNS, stateful rules, Suricata IDS |
 | **HP t640** (`t640-mon`) | Monitoring | Debian 13, key-only SSH: LibreNMS, central logs, phone alerts |
 | **Cisco SG300-10** | Switch | Layer 3: routes home ↔ servers, VLAN trunk to the firewall |
@@ -301,7 +301,9 @@ Details for each machine are in [`hardware/`](hardware/) and [`services/`](servi
 - [x] Lab (VLAN 20) behind the firewall — [`SESSION-51`](runbooks/SESSION-51-phase1-vlan20-behind-opnsense-build-2026-11-12.md), proven in [`SESSION-52`](runbooks/SESSION-52-phase1-proven-first-red-blue-exercise-2026-11-13.md)
 - [x] Monitoring, central logs, and alerts to my phone — [`SESSION-44`](runbooks/SESSION-44-t640-mon-syslog-snmp-firewall-librenms-2026-11-06.md) through [`SESSION-53`](runbooks/SESSION-53-suricata-ids-on-lab-first-detection-2026-11-13.md)
 - [ ] **Move everything behind the firewall**, starting with the servers (VLAN 10). This closes the known gap
-- [ ] **RAM upgrades**
+- [x] **Proxmox host RAM 16 → 64 GB**: [`SESSION-56`](runbooks/SESSION-56-ram-upgrade-64gb-openclaw-back-2026-11-13.md)
+- [ ] **Wazuh SIEM** on the Proxmox host (now has the RAM for it)
+- [ ] Monitoring box RAM 4 → 32 GB
 - [ ] **Put all of the admin dashboards on their own VLAN** (a management VLAN), so only my admin devices can reach them
 
 ## Repo structure
