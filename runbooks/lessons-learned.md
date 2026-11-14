@@ -553,3 +553,14 @@
 - systemd-analyze security turns hardening into a number: 9.6 -> 8.5 -> 1.7.
 - Tighten, then TEST. A low score that breaks the service is worth nothing.
 - Exit root shells when done.
+
+## 2026-11-13 -- pve-node1 to 64 GB, OpenClaw back
+- Know where the slots are before you open it: M720q RAM + M.2 are on the BOTTOM.
+- Beeps before video = no usable memory. Reseat before blaming the stick or BIOS.
+- One stick in the primary slot answers "is it the BIOS?" in one boot.
+- Don't do an upgrade you haven't proven you need: the BIOS update was skipped.
+- Rated speed != running speed. The CPU caps it (i5-8400T = 2666).
+- Check pgrep vzdump before a planned shutdown.
+- A "Finished" backup can still carry a warning: guest fs freeze failed.
+- dmidecode before AND after. The baseline makes the result proof.
+- KVM reserves each VM's full RAM at start: allocations decide headroom.
