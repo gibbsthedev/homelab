@@ -1,6 +1,6 @@
 # VM: docker-agents / "Tuck" (VMID 100)
 
-**STATUS: PARKED since 2026-11-11** (clean shutdown, `onboot 0`, disabled in LibreNMS). See SESSION-49.
+**STATUS: RUNNING again since 2026-11-13** (12 GB, `onboot 1`) after the pve-node1 upgrade to 64 GB. See SESSION-56. Was parked 2026-11-11 → 11-13 (SESSION-49).
 
 ## Purpose
 Hosts Docker + migrated agents (OpenClaw) from AWS. Runs a 12-agent AI system.
@@ -8,7 +8,7 @@ Hosts Docker + migrated agents (OpenClaw) from AWS. Runs a 12-agent AI system.
 ## Specs (current — updated 2026-09-20)
 - OS: Debian 13.6 (Trixie)
 - vCPU: 3 (type: host)
-- RAM: 6 GB (6144 MiB) — resized down from original 8GB/4-core to free RAM headroom for the Hermes VM
+- RAM: **12 GB (12288 MiB)** since 2026-11-13. Previously 6 GB (6144 MiB) — resized down from original 8GB/4-core to free RAM headroom for the Hermes VM
 - Disk: 32 GB on local-lvm (NVMe-backed), plus a second 16 GB disk (scsi1, backup=0) for OpenClaw's own internal backups
 - IP: **192.168.10.10/24, gw 192.168.10.1 (static in-guest, VLAN 10)** — since 2026-09-20. Previously 192.168.8.10 via Beryl DHCP reservation, originally .139
 - DNS: Tailscale MagicDNS owns `/etc/resolv.conf`; upstream set tailnet-wide with Override on. `dns-nameservers` in `/etc/network/interfaces` is inert (no resolvconf)
@@ -27,3 +27,4 @@ Hosts Docker + migrated agents (OpenClaw) from AWS. Runs a 12-agent AI system.
 - 2026-11-08: rebooted (planned) to load kernel 6.12.115 — confirmed in LibreNMS. Memory flat ~3 GB after; ~0.5–0.8 GB swap in use. **OpenClaw backup disk (vm-100-disk-1, 16 GB) at 97.9% per `lvs` — check rotation.**
 - 2026-11-10: Decision to **park** (clean shutdown, not hibernate) and give node1 to Hermes until a second node exists. Hermes's read-only inventory: only blog Cloudflare Pages deployment must move first; preserve both disks, Telegram identity, memory, trading data. Shutdown planned later this week — see SESSION-48.
 - 2026-11-11: **Parked.** Copies first (VM snapshot on the Windows PC, OpenClaw backup on Hermes, Proxmox snapshot kept on the thin pool — nearly free while the VM is off, but not a backup). `qm shutdown 100`, `qm set 100 --onboot 0`; LibreNMS device disabled. Its 6 GB RAM went to Hermes — **lower Hermes's RAM before starting this VM again** (host is 16 GB). (SESSION-49)
+- 2026-11-13: **Unparked.** pve-node1 went 16 → 64 GB, so both VMs fit again. `qm set 100 --memory 12288 --onboot 1`, `qm start 100`. Hermes raised to 20 GB at the same time. Still to do: re-enable in LibreNMS, add back to the nightly vzdump job, delete the old Proxmox snapshot once it's healthy, pending kernel reboot, backup disk 97.9%, tighten UFW OpenSSH. (SESSION-56)
