@@ -8,7 +8,7 @@ A homelab built from scratch, documented as a learning log and a portfolio — w
 | **Firewall** | OPNsense, stateful, with Suricata intrusion detection |
 | **Monitoring** | LibreNMS on 7 devices, central logs, alerts to my phone |
 | **Hosting** | My websites, self-hosted on Proxmox (moved off AWS) |
-| **Documented** | 57 sessions in [`runbooks/`](runbooks/) |
+| **Documented** | 58 sessions in [`runbooks/`](runbooks/) |
 
 **Contents:** [Goals](#goals) · [Network map](#network-map) · [How the lab reaches the internet](#how-the-lab-reaches-the-internet) · [Segmentation](#segmentation-a-sign-and-a-guard) · [Monitoring](#monitoring-and-alerts) · [Known gap](#known-gap) · [Hardware](#hardware) · [What's next](#whats-next) · [Something I learned](#something-i-learned)
 
@@ -300,7 +300,8 @@ Details for each machine are in [`hardware/`](hardware/) and [`services/`](servi
 - [ ] Suricata on the servers' traffic too
 - [x] **Proxmox host RAM 16 → 64 GB**: [`SESSION-56`](runbooks/SESSION-56-ram-upgrade-64gb-openclaw-back-2026-11-13.md)
 - [ ] **Wazuh SIEM** on the Proxmox host (now has the RAM for it)
-- [ ] Monitoring box RAM 4 → 32 GB
+- [x] RAM tested (memtest, 0 errors), monitoring box 4 → 12 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
+- [x] Firewall RAM 4 → 16 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
 - [ ] **Put all of the admin dashboards on their own VLAN** (a management VLAN), so only my admin devices can reach them
 
 ## Repo structure
