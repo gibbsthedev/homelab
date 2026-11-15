@@ -8,7 +8,7 @@ A homelab built from scratch, documented as a learning log and a portfolio — w
 | **Firewall** | OPNsense, stateful, with Suricata intrusion detection |
 | **Monitoring** | LibreNMS on 7 devices, central logs, alerts to my phone |
 | **Hosting** | My websites, self-hosted on Proxmox (moved off AWS) |
-| **Documented** | 53 sessions in [`runbooks/`](runbooks/) |
+| **Documented** | 57 sessions in [`runbooks/`](runbooks/) |
 
 **Contents:** [Goals](#goals) · [Network map](#network-map) · [How the lab reaches the internet](#how-the-lab-reaches-the-internet) · [Segmentation](#segmentation-a-sign-and-a-guard) · [Monitoring](#monitoring-and-alerts) · [Known gap](#known-gap) · [Hardware](#hardware) · [What's next](#whats-next) · [Something I learned](#something-i-learned)
 
@@ -31,7 +31,7 @@ flowchart TB
     isp["WhiteSky<br/>apartment internet"]
     beryl["Beryl AX router<br/>192.168.8.1"]
     sw["SG300 switch"]
-    fw["t655 · OPNsense firewall<br/>lab gateway"]
+    fw["t655 · OPNsense firewall<br/>gateway for servers + lab"]
 
     internet --- isp --- beryl
     beryl ---|"gi1"| sw
@@ -56,7 +56,7 @@ flowchart TB
     sw ---|"gi2"| pve
     sw ---|"gi4"| mint
     sw ---|"gi6"| mon
-    sw ===|"gi5 trunk<br/>VLAN 1 + 20"| fw
+    sw ===|"gi5 trunk<br/>VLAN 1 + 10 + 20"| fw
     sw ---|"gi3"| tk
 
     classDef lab fill:#FAECE7,stroke:#993C1D,color:#4A1B0C
@@ -105,7 +105,7 @@ flowchart TB
 | — | Hermes VM | 192.168.10.206 | Hosts my websites |
 | — | OpenClaw VM | 192.168.10.10 | Runs my OpenClaw agents |
 
-Gateway: the switch, 192.168.10.1. The Beryl has a return route for 192.168.10.0/24 pointing at the switch (192.168.8.165). Without it, server traffic reaches the internet but the replies never find their way back (asymmetric routing).
+Gateway: the firewall, 192.168.10.1 (OPNsense, since [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md)). It took the address over from the switch, so nothing inside the servers had to change. The Beryl's route for 192.168.10.0/24 points at the firewall (192.168.8.195), and only my admin laptops and the monitoring box are let in.
 
 </details>
 
@@ -163,9 +163,10 @@ flowchart LR
     lab -->|"allowed · firewall"| net
     lab --x|"blocked · firewall"| srv
     lab --x|"blocked · firewall"| home
-    srv -->|"allowed"| net
-    srv --x|"blocked · switch rule"| lab
-    home -->|"open · known gap"| srv
+    srv -->|"allowed · firewall"| net
+    srv --x|"blocked · firewall"| lab
+    srv --x|"blocked · firewall"| home
+    home -->|"admins + monitoring only · firewall"| srv
 
     classDef labc fill:#FAECE7,stroke:#993C1D,color:#4A1B0C
     classDef homec fill:#E1F5EE,stroke:#0F6E56,color:#04342C
@@ -180,8 +181,8 @@ flowchart LR
 | Room | Enforced by | Type | Can reach | Blocked from |
 |---|---|---|---|---|
 | 🟧 VLAN 20 · lab | Guard: OPNsense on the t655 | Stateful, every block logged | Internet only | Every private network, and the firewall itself |
-| 🟪 VLAN 10 · servers | Sign: `vlan10-policy` on switch port gi2 | Stateless | Internet, home | The lab, the switch's management address |
-| 🟩 VLAN 1 · home | Nothing yet | — | Everything, including the servers | — (see Known gap) |
+| 🟪 VLAN 10 · servers | Guard: OPNsense (plus the old switch sign, `vlan10-policy`, as a second layer) | Stateful, every block logged | Internet only (replies to admins go back by state) | Home, lab, and the firewall itself |
+| 🟩 VLAN 1 · home | Guard: OPNsense, for anything going to the servers | Stateful | Internet. Servers only from my two admin laptops (SSH, Proxmox GUI, ping) and the monitoring box (SNMP, ping) | The servers, from every other device |
 
 <details>
 <summary><b>The firewall's lab rules (checked top to bottom, first match wins)</b></summary>
@@ -269,23 +270,18 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 
 ## Known gap
 
-Proxmox is not behind the guard yet. The home room (VLAN 1) can still reach the servers, including the Proxmox login page. I found this myself by opening Proxmox from my phone on the home WiFi.
+**Closed 2026-11-15.** Until then, any device on my home WiFi could reach the servers, including the Proxmox login page. I found it myself by opening Proxmox from my phone. The servers are now behind the firewall: only my two admin laptops (SSH, Proxmox GUI) and the monitoring box (SNMP) get in, and the same phone test is now blocked and logged. Write-up: [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md).
 
-**Why the risk is low for now**
-
-- Guests and other devices use the apartment's WiFi (WhiteSky-Prose), which has no way into my network. Only my admin laptops use my home WiFi.
-- Proxmox still needs a password.
-
-**What could still go wrong:** if my own laptop picked up malware, it could reach Proxmox before I noticed. That's why the fix is first on the list below.
+**What's still open:** my admin laptops sit on the home network with everything else. The next step is a separate management VLAN, so admin access needs a dedicated room, not just an allowed address.
 
 ## Hardware
 
 | Device | Role | Notes |
 |---|---|---|
 | **Lenovo ThinkCentre M720q** (`pve-node1`) | Proxmox VE host, **64 GB RAM** | Runs Hermes (my websites) and OpenClaw (my agents), with room left for the SIEM |
-| **HP t655** (`t655-fw`) | Firewall | OPNsense 26.7: lab gateway, DHCP, DNS, stateful rules, Suricata IDS |
+| **HP t655** (`t655-fw`) | Firewall | OPNsense 26.7: gateway for the servers and the lab, stateful rules, DHCP and DNS for the lab, Suricata IDS |
 | **HP t640** (`t640-mon`) | Monitoring | Debian 13, key-only SSH: LibreNMS, central logs, phone alerts |
-| **Cisco SG300-10** | Switch | Layer 3: routes home ↔ servers, VLAN trunk to the firewall |
+| **Cisco SG300-10** | Switch | VLANs and the trunk to the firewall. It no longer routes between rooms: the firewall does |
 | **GL.iNet Beryl AX** | Edge router | Wired WAN with automatic WiFi failover (tested by pulling the cable: zero packets lost) |
 | **Lenovo 100e** (`testkit`) | Lab client | Kali Linux: test and attack box on the lab VLAN |
 | **Mint laptop** | Admin workstation | Where I manage everything from |
@@ -300,7 +296,8 @@ Details for each machine are in [`hardware/`](hardware/) and [`services/`](servi
 
 - [x] Lab (VLAN 20) behind the firewall — [`SESSION-51`](runbooks/SESSION-51-phase1-vlan20-behind-opnsense-build-2026-11-12.md), proven in [`SESSION-52`](runbooks/SESSION-52-phase1-proven-first-red-blue-exercise-2026-11-13.md)
 - [x] Monitoring, central logs, and alerts to my phone — [`SESSION-44`](runbooks/SESSION-44-t640-mon-syslog-snmp-firewall-librenms-2026-11-06.md) through [`SESSION-53`](runbooks/SESSION-53-suricata-ids-on-lab-first-detection-2026-11-13.md)
-- [ ] **Move everything behind the firewall**, starting with the servers (VLAN 10). This closes the known gap
+- [x] **Servers (VLAN 10) behind the firewall**: closes the known gap: [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md)
+- [ ] Suricata on the servers' traffic too
 - [x] **Proxmox host RAM 16 → 64 GB**: [`SESSION-56`](runbooks/SESSION-56-ram-upgrade-64gb-openclaw-back-2026-11-13.md)
 - [ ] **Wazuh SIEM** on the Proxmox host (now has the RAM for it)
 - [ ] Monitoring box RAM 4 → 32 GB
