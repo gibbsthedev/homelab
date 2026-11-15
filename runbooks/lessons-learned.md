@@ -564,3 +564,14 @@
 - A "Finished" backup can still carry a warning: guest fs freeze failed.
 - dmidecode before AND after. The baseline makes the result proof.
 - KVM reserves each VM's full RAM at start: allocations decide headroom.
+
+## 2026-11-15 -- Beryl 4.11, servers behind the firewall (Phase 3)
+- uci indexes shift after a delete. Delete once, then re-read.
+- GL.iNet "Keep Settings" keeps /etc/config, not packages: snmpd had to be reinstalled.
+- The router's own upgrade page was ahead of the vendor's status page.
+- "Last login" is the PREVIOUS login. Name every address you find.
+- Take over the gateway IP instead of renumbering: zero changes inside the servers.
+- Build the new interface disabled while another device owns the IP.
+- Read the saved rule list: 3 of 8 new rules were wrong. A broad Pass above a Block cancels it.
+- A UDP traceroute that dies at the firewall is proof the rules work. Use -I.
+- EUI-64 puts the MAC in the IPv6 link-local address. Proof, and also identifying.
