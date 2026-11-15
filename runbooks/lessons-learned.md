@@ -575,3 +575,13 @@
 - Read the saved rule list: 3 of 8 new rules were wrong. A broad Pass above a Block cancels it.
 - A UDP traceroute that dies at the firewall is proof the rules work. Use -I.
 - EUI-64 puts the MAC in the IPv6 link-local address. Proof, and also identifying.
+
+## 2026-11-15 -- memtest, RAM moves, snmpd boot race
+- One memtest pass with 0 errors is the bar. It loops forever: stop it yourself.
+- memtest finds the keyboard once, at start. Don't swap it mid-test.
+- Secure Boot blocks unsigned tools (bad shim signature). Off for the test, then back on.
+- Look up the hardware before opening it: t640 RAM is under the big perforated cover.
+- Integrated graphics borrow RAM: 12 GB installed, 9.6 GiB visible.
+- Enabled != comes back after reboot. snmpd bound to one IP lost the race with DHCP.
+- Restart=on-failure is the safety net. Reboot and read journalctl -b to prove it.
+- No dmidecode on OPNsense (FreeBSD): dmesg.boot / sysctl hw.physmem. No one-off packages on the firewall.
