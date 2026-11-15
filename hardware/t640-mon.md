@@ -17,7 +17,7 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 | Product no. / SKU | xxxx (t640/NoOS/128GF/4GRW TC) |
 | Serial | xxxx |
 | CPU | AMD Ryzen Embedded R1505G — 2 cores / 4 threads |
-| RAM | 4 GB DDR4 SO-DIMM (2 slots, 32 GB max) |
+| RAM | **12 GB** since 2026-11-15: 8 GB (Top-Slot 1, Channel A) + 4 GB (Top-Slot 2, Channel B), DDR4-2400. 2 slots, 32 GB max. ~2 GB reserved by the integrated GPU (UMA), so `free -h` shows 9.6 Gi. RAM is under the large perforated cover (friction fit). Open: rear port cover off → hold the green tab → lift the side panel (SESSION-58) |
 | Storage | SSSTC CVB-8D128-HP — 128 GB M.2 **SATA** SSD (`sda`), standard and swappable |
 | Wired NIC | Realtek RTL8111/8168 `[10ec:8168]` → `enp1s0f0` |
 | Wi-Fi | Intel AX200 (unused) |
@@ -56,7 +56,7 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 | Scheduling | `librenms-scheduler.timer` (every minute), `/etc/cron.d/librenms` (5-min polling + daily update), `/etc/logrotate.d/librenms` |
 | Python deps | From **apt**, not pip: python3-pymysql, -dotenv, -redis, -setuptools, -psutil, -command-runner |
 | Monitored devices | 6: + t655-fw `.8.195` (2026-11-09, SESSION-47). Earlier 5 (SESSION-46): SG300 `.8.165`, pve-node1 `.10.2`, itself `.8.24`, docker-agents `.10.10`, hermes `.10.206`. SNMP v2c, unique community per device, held in LibreNMS's credential store |
-| Own SNMP agent | snmpd on `127.0.0.1:161` + `192.168.8.24:161`, answers only itself. Added by real IP, not 127.0.0.1 (LibreNMS sees every host's loopback as a duplicate) |
+| Own SNMP agent | snmpd on `127.0.0.1:161` + `192.168.8.24:161`, answers only itself. Added by real IP, not 127.0.0.1 (LibreNMS sees every host's loopback as a duplicate). **Override** `/etc/systemd/system/snmpd.service.d/override.conf`: `After/Wants=network-online.target`, `Restart=on-failure`, `RestartSec=10`. Without it snmpd lost the race with DHCP at boot and stayed down (SESSION-58) |
 | Timezone | America/Chicago (system + both php.ini files); NTP synced |
 
 ## BIOS
@@ -93,6 +93,9 @@ fixed it. Lesson: after an HP BIOS flash, load defaults before blaming the OS.
 ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the console via printk.
 
 ## Next
+- [x] RAM 4 → 12 GB (+8 GB in the empty top slot) — 2026-11-15, SESSION-58
+- [x] snmpd survives reboot (boot race with DHCP fixed by retry override) — 2026-11-15, SESSION-58
+- [ ] Optional: `allow-hotplug` → `auto` for the main interface; lower the UMA frame buffer in BIOS
 - [x] Beryl DHCP reservation 192.168.8.24 ↔ xx:xx:xx:xx:xx:xx (2026-10-29)
 - [x] rsyslog receiver + 14-day rotation, SG300 sending (2026-11-06)
 - [x] SNMP v2c read-only from SG300, restricted to this host (2026-11-06)
