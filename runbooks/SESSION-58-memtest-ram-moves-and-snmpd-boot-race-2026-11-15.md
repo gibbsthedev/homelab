@@ -62,7 +62,7 @@ Gotchas:
 | Secure Boot temporarily off → memtest86+ v7.00 | ✅ **Pass 1, Errors 0**: 31.8 GB, 2×16 GB DDR4-2666, 55 min | |
 
 - Turning Secure Boot off on an HP asks for confirmation (a physical-presence code, or a BIOS admin password if one is set).
-- **Secure Boot must go back on.** It blocks malware that loads before the OS.
+- **Secure Boot must go back on.** It blocks malware that loads before the OS. ✅ Turned back on after the test.
 
 ---
 
@@ -198,7 +198,7 @@ systemctl --failed                                                # 0 loaded uni
 - **FreeBSD isn't Linux:** no `dmidecode` on OPNsense. Use `dmesg.boot` / `sysctl hw.physmem`, and don't add packages to the firewall for a one-off check.
 
 ## 9. Next
-1. **"command": turn Secure Boot back on.**
+1. ~~"command": turn Secure Boot back on~~ — done 2026-11-15.
 2. After the t655 swap: confirm Suricata running, t655-fw green in LibreNMS, `ping 1.1.1.1` from Proxmox, a site loads on cellular.
 3. Optional: `grep -E "auto|allow-hotplug" /etc/network/interfaces` on t640-mon. `auto` makes network-online meaningful. Also lower the UMA frame buffer.
 4. Check the same boot behavior on the other boxes: `systemctl is-enabled snmpd` + `systemctl --failed` on Proxmox and Hermes.

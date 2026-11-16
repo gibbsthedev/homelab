@@ -585,3 +585,16 @@
 - Enabled != comes back after reboot. snmpd bound to one IP lost the race with DHCP.
 - Restart=on-failure is the safety net. Reboot and read journalctl -b to prove it.
 - No dmidecode on OPNsense (FreeBSD): dmesg.boot / sysctl hw.physmem. No one-off packages on the firewall.
+
+## 2026-11-15 -- Suricata on servers, OpenClaw retired, silent backup failure, Wazuh live
+- Encrypted tunnel traffic hides web attacks from Suricata: watch for a compromised server's behavior instead.
+- Match every alert to a cause; the ones that don't fit are the ones to investigate.
+- A full thin pool freezes every VM. Check lvs Data% before adding a big disk.
+- Deleting a VM leaves its backups behind (and the secrets inside them).
+- A backup that fails silently isn't a backup. List the archives, not the logs. Retention needs room for one more dump.
+- "broken pipe" after a write error usually means the disk filled up mid-write.
+- Read the file name before downloading (server vs desktop, .iso vs .torrent). Verify the checksum.
+- Ubuntu's installer LVM uses half the disk by default. Resize ubuntu-lv.
+- Never photograph a password. If it happens, rotate it.
+- Generated install commands assume a full distro: Proxmox has no sudo or lsb-release.
+- A failed package setup can leave MANAGER_IP in ossec.conf. Check the config before blaming the network.
