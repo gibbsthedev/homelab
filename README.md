@@ -8,7 +8,7 @@ A homelab built from scratch, documented as a learning log and a portfolio — w
 | **Firewall** | OPNsense, stateful, with Suricata intrusion detection |
 | **Monitoring** | LibreNMS on 7 devices, central logs, alerts to my phone |
 | **Hosting** | My websites, self-hosted on Proxmox (moved off AWS) |
-| **Documented** | 58 sessions in [`runbooks/`](runbooks/) |
+| **Documented** | 59 sessions in [`runbooks/`](runbooks/) |
 
 **Contents:** [Goals](#goals) · [Network map](#network-map) · [How the lab reaches the internet](#how-the-lab-reaches-the-internet) · [Segmentation](#segmentation-a-sign-and-a-guard) · [Monitoring](#monitoring-and-alerts) · [Known gap](#known-gap) · [Hardware](#hardware) · [What's next](#whats-next) · [Something I learned](#something-i-learned)
 
@@ -44,9 +44,9 @@ flowchart TB
     subgraph v10["VLAN 10 · servers · 192.168.10.x"]
         pve["Proxmox host"]
         hermes["Hermes VM<br/>websites"]
-        oc["OpenClaw VM<br/>agents"]
+        wz["Wazuh VM<br/>SIEM"]
         pve --- hermes
-        pve --- oc
+        pve --- wz
     end
 
     subgraph v20["VLAN 20 · lab · 192.168.20.x"]
@@ -103,7 +103,7 @@ flowchart TB
 |---|---|---|---|
 | gi2 | Proxmox host (Lenovo M720q) | 192.168.10.2 | Runs the virtual machines |
 | — | Hermes VM | 192.168.10.206 | Hosts my websites |
-| — | OpenClaw VM | 192.168.10.10 | Runs my OpenClaw agents |
+| — | Wazuh VM | 192.168.10.20 | SIEM: collects and analyzes security events from my machines ([`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md)) |
 
 Gateway: the firewall, 192.168.10.1 (OPNsense, since [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md)). It took the address over from the switch, so nothing inside the servers had to change. The Beryl's route for 192.168.10.0/24 points at the firewall (192.168.8.195), and only my admin laptops and the monitoring box are let in.
 
@@ -243,9 +243,9 @@ flowchart LR
     class others,phone edge
 ```
 
-### Suricata: the camera on the lab
+### Suricata: the camera on the lab and the servers
 
-Suricata runs on the firewall and watches the lab's traffic for known attack patterns. It's in **IDS mode**: it raises an alert but doesn't block anything, so a bad rule can never break the network. The firewall rules do the blocking.
+Suricata runs on the firewall and watches the lab's and the servers' traffic for known attack patterns. On the servers, the websites arrive through Cloudflare's encrypted tunnel, so Suricata can't read attacks against them. There it watches for signs that a server is already compromised: malware traffic, botnet servers, crypto-mining. It's in **IDS mode**: it raises an alert but doesn't block anything, so a bad rule can never break the network. The firewall rules do the blocking.
 
 When Suricata sees something serious, the alert goes to the t640's logs, and a small watcher program sends it to my phone through Telegram. Each alert says how severe it is (priority 1 is highest) and which known attack pattern it matched.
 
@@ -278,7 +278,7 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 
 | Device | Role | Notes |
 |---|---|---|
-| **Lenovo ThinkCentre M720q** (`pve-node1`) | Proxmox VE host, **64 GB RAM** | Runs Hermes (my websites) and OpenClaw (my agents), with room left for the SIEM |
+| **Lenovo ThinkCentre M720q** (`pve-node1`) | Proxmox VE host, **64 GB RAM** | Runs Hermes (my websites) and Wazuh (my SIEM). OpenClaw was retired in [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md) |
 | **HP t655** (`t655-fw`) | Firewall | OPNsense 26.7: gateway for the servers and the lab, stateful rules, DHCP and DNS for the lab, Suricata IDS |
 | **HP t640** (`t640-mon`) | Monitoring | Debian 13, key-only SSH: LibreNMS, central logs, phone alerts |
 | **Cisco SG300-10** | Switch | VLANs and the trunk to the firewall. It no longer routes between rooms: the firewall does |
@@ -286,7 +286,7 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 | **Lenovo 100e** (`testkit`) | Lab client | Kali Linux: test and attack box on the lab VLAN |
 | **Mint laptop** | Admin workstation | Where I manage everything from |
 
-**Backups:** nightly local snapshots plus offsite copies to Cloudflare R2.
+**Backups:** a nightly local backup of Hermes plus an offsite copy in Cloudflare R2. In [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md) I found it had failed silently for two nights (the backup storage was full), fixed it, and alerts on failure are next.
 
 **Retired:** a Hetzner VPS running four honeypots (Cowrie, Dionaea, mailoney, and a WordPress honeypot I built) that captured real attacker traffic. Final write-up: [`SESSION-43`](runbooks/SESSION-43-final-pull-and-lifetime-close-2026-10-30.md).
 
@@ -297,9 +297,11 @@ Details for each machine are in [`hardware/`](hardware/) and [`services/`](servi
 - [x] Lab (VLAN 20) behind the firewall — [`SESSION-51`](runbooks/SESSION-51-phase1-vlan20-behind-opnsense-build-2026-11-12.md), proven in [`SESSION-52`](runbooks/SESSION-52-phase1-proven-first-red-blue-exercise-2026-11-13.md)
 - [x] Monitoring, central logs, and alerts to my phone — [`SESSION-44`](runbooks/SESSION-44-t640-mon-syslog-snmp-firewall-librenms-2026-11-06.md) through [`SESSION-53`](runbooks/SESSION-53-suricata-ids-on-lab-first-detection-2026-11-13.md)
 - [x] **Servers (VLAN 10) behind the firewall**: closes the known gap: [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md)
-- [ ] Suricata on the servers' traffic too
+- [x] Suricata on the servers' traffic too: [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md)
 - [x] **Proxmox host RAM 16 → 64 GB**: [`SESSION-56`](runbooks/SESSION-56-ram-upgrade-64gb-openclaw-back-2026-11-13.md)
-- [ ] **Wazuh SIEM** on the Proxmox host (now has the RAM for it)
+- [x] **Wazuh SIEM** live, first agents (Hermes, Proxmox): [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md)
+- [ ] Wazuh: monitoring box, firewall and Suricata logs, laptops
+- [ ] Alerts when a backup fails, and a separate backup disk
 - [x] RAM tested (memtest, 0 errors), monitoring box 4 → 12 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
 - [x] Firewall RAM 4 → 16 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
 - [ ] **Put all of the admin dashboards on their own VLAN** (a management VLAN), so only my admin devices can reach them
