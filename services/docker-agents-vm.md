@@ -1,6 +1,6 @@
 # VM: docker-agents / "Tuck" (VMID 100)
 
-**STATUS: RUNNING again since 2026-11-13** (12 GB, `onboot 1`) after the pve-node1 upgrade to 64 GB. See SESSION-56. Was parked 2026-11-11 → 11-13 (SESSION-49).
+**STATUS: RETIRED 2026-11-15** (SESSION-59). Hermes replaced it. VM, snapshot, disks and local dumps destroyed; no final backup by choice (would be rebuilt from scratch). This file is kept as history.
 
 ## Purpose
 Hosts Docker + migrated agents (OpenClaw) from AWS. Runs a 12-agent AI system.
