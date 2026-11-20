@@ -598,3 +598,13 @@
 - Never photograph a password. If it happens, rotate it.
 - Generated install commands assume a full distro: Proxmox has no sudo or lsb-release.
 - A failed package setup can leave MANAGER_IP in ossec.conf. Check the config before blaming the network.
+
+## 2026-11-16 → 19 -- printer foothold, command as admin, t640 agent, Hermes disk
+- A foothold is realistic only where a real one would be. Then measure what it reaches and what sees it.
+- Some devices can't do private read-only SNMP. Document the risk; don't enable write.
+- An alias is one lock. nftables and nginx allow-lists are separate locks.
+- 403 from the web server = the network path is fine.
+- Check <address> in ossec.conf before blaming the network. Restart the agent after.
+- "The dashboard is broken" can be the client. Try a second machine.
+- growpart needs /tmp: TMPDIR=/dev/shm on a full root. "NOCHANGE" can mean it already worked; partx -u.
+- A DHCP address names a device only at a point in time. Re-check, then reserve.

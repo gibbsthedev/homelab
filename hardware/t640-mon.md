@@ -45,18 +45,19 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 ## Services (2026-11-06)
 | Service | Detail |
 | --- | --- |
-| Host firewall | nftables, **default deny inbound**. Allow: established/related, loopback, TCP 22+80 from Mint (`.186`, `.142`) only, UDP 514 from the switch (`.165`), t655-fw (`.195`) and the Beryl (`.1`) only, ICMP/ICMPv6. Forward: drop. Output: accept. `/etc/nftables.conf`, enabled at boot |
+| Host firewall | nftables, **default deny inbound**. Allow: established/related, loopback, TCP 22+80 from the admin laptops only (Mint `.186`/`.142`, command `.118` wired / `.213` Wi-Fi, since SESSION-60), UDP 514 from the switch (`.165`), t655-fw (`.195`) and the Beryl (`.1`) only, ICMP/ICMPv6. Forward: drop. Output: accept. `/etc/nftables.conf`, enabled at boot |
 | Syslog receiver | rsyslog, UDP 514 (`/etc/rsyslog.d/10-remote.conf`), one file per sender IP in `/var/log/remote/`. Senders: SG300 (.165), t655-fw (.195, OPNsense filterlog), Beryl (.1, OpenWrt logread: DHCP, Wi-Fi assoc/deauth, WAN events) |
 | Log rotation | `/etc/logrotate.d/remote`: daily, 14 days, compressed |
 | SNMP client | `snmp` package; polls SG300 v2c read-only. Community string in Apple Passwords, **not here** |
 | Database | MariaDB 11.8.6, **127.0.0.1:3306 only**. DB `librenms`, user `librenms@localhost` (rights on that DB only). Password in Apple Passwords |
 | PHP | 8.4.27. Dedicated FPM pool `[librenms]` runs as `librenms`; socket `/run/php-fpm-librenms.sock` (owner `www-data`, mode 0660) |
 | LibreNMS | 26.10.0 in `/opt/librenms`, owned by system user `librenms`. Web UI `http://192.168.8.24` (Mint only). Non-default admin username. Validate: clean |
-| Web server | nginx, `/etc/nginx/sites-enabled/librenms.conf`: root `/opt/librenms/html`, `allow` Mint `.186`/`.142`, `deny all`, dotfiles denied |
+| Web server | nginx, `/etc/nginx/sites-enabled/librenms.conf`: root `/opt/librenms/html`, `allow` Mint `.186`/`.142` + command `.118` (SESSION-60), `deny all`. Backup copies go in `/root/`, never inside `sites-enabled`, dotfiles denied |
 | Scheduling | `librenms-scheduler.timer` (every minute), `/etc/cron.d/librenms` (5-min polling + daily update), `/etc/logrotate.d/librenms` |
 | Python deps | From **apt**, not pip: python3-pymysql, -dotenv, -redis, -setuptools, -psutil, -command-runner |
 | Monitored devices | 6: + t655-fw `.8.195` (2026-11-09, SESSION-47). Earlier 5 (SESSION-46): SG300 `.8.165`, pve-node1 `.10.2`, itself `.8.24`, docker-agents `.10.10`, hermes `.10.206`. SNMP v2c, unique community per device, held in LibreNMS's credential store |
 | Own SNMP agent | snmpd on `127.0.0.1:161` + `192.168.8.24:161`, answers only itself. Added by real IP, not 127.0.0.1 (LibreNMS sees every host's loopback as a duplicate). **Override** `/etc/systemd/system/snmpd.service.d/override.conf`: `After/Wants=network-online.target`, `Restart=on-failure`, `RestartSec=10`. Without it snmpd lost the race with DHCP at boot and stayed down (SESSION-58) |
+| Wazuh agent | 4.14.10, manager 192.168.10.20 (OPNsense WAN rule MONITOR → .20 TCP 1514/1515). `<address>` was first set to this box's own IP (`ERROR 1208`); fixed + restart (SESSION-60) |
 | Timezone | America/Chicago (system + both php.ini files); NTP synced |
 
 ## BIOS
@@ -115,3 +116,9 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 - Firewall log now carries **Suricata alerts** too: `grep suricata /var/log/remote/192.168.8.195.log`
 - [x] `/var/log/remote/` locked: files `0640 root:adm`, dir `0750` (rsyslog `fileGroup/fileCreateMode`, logrotate `create 0640 root adm`); scgiky in `adm` — SESSION-54
 - [x] `ids-telegram.service`: Suricata Priority 1–2 → Telegram, 1 msg/min — SESSION-53. Since SESSION-54 runs as system user **idsalert** (in `adm`), env `root:idsalert 0640`, systemd sandbox, `systemd-analyze security` **1.7 OK**
+
+## Findings 2026-11-16 → 19 (SESSION-60)
+- [x] Third Wazuh agent (after hermes, pve-node1)
+- [x] command (.118) allowed in nftables and nginx; its Wi-Fi .213 in nftables (confirmed command's, not the phone's, 2026-11-19)
+- [ ] SSH from command: add command's public key (key-only; don't overwrite its existing `id_ed25519`)
+- [ ] Drop Mint's .142/.186 from nftables + nginx when command fully takes over

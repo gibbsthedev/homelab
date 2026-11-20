@@ -8,7 +8,7 @@ A homelab built from scratch, documented as a learning log and a portfolio — w
 | **Firewall** | OPNsense, stateful, with Suricata intrusion detection |
 | **Monitoring** | LibreNMS on 7 devices, central logs, alerts to my phone |
 | **Hosting** | My websites, self-hosted on Proxmox (moved off AWS) |
-| **Documented** | 59 sessions in [`runbooks/`](runbooks/) |
+| **Documented** | 60 sessions in [`runbooks/`](runbooks/) |
 
 **Contents:** [Goals](#goals) · [Network map](#network-map) · [How the lab reaches the internet](#how-the-lab-reaches-the-internet) · [Segmentation](#segmentation-a-sign-and-a-guard) · [Monitoring](#monitoring-and-alerts) · [Known gap](#known-gap) · [Hardware](#hardware) · [What's next](#whats-next) · [Something I learned](#something-i-learned)
 
@@ -38,7 +38,9 @@ flowchart TB
 
     subgraph v1["VLAN 1 · home · 192.168.8.x"]
         mint["Mint<br/>admin laptop"]
+        cmd["command<br/>admin laptop"]
         mon["t640<br/>monitoring"]
+        hp["HP printer<br/>deliberate foothold"]
     end
 
     subgraph v10["VLAN 10 · servers · 192.168.10.x"]
@@ -56,6 +58,8 @@ flowchart TB
     sw ---|"gi2"| pve
     sw ---|"gi4"| mint
     sw ---|"gi6"| mon
+    sw ---|"gi7"| hp
+    sw ---|"gi8"| cmd
     sw ===|"gi5 trunk<br/>VLAN 1 + 10 + 20"| fw
     sw ---|"gi3"| tk
 
@@ -64,7 +68,7 @@ flowchart TB
     classDef srv fill:#EEEDFE,stroke:#534AB7,color:#26215C
     classDef edge fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A
     class tk,fw lab
-    class mint,mon home
+    class mint,cmd,mon,hp home
     class pve,hermes,oc srv
     class internet,isp,beryl,sw edge
     style v20 fill:#FDF6F3,stroke:#993C1D,color:#4A1B0C
@@ -92,6 +96,8 @@ flowchart TB
 | gi4 | Mint | 192.168.8.142 | My admin laptop: where I manage everything from |
 | gi5 | t655 (outside side) | 192.168.8.195 | The firewall's face toward home and the internet |
 | gi6 | t640-mon | 192.168.8.24 | Monitoring: LibreNMS graphs, central logs, phone alerts |
+| gi7 | HP OfficeJet Pro 8025e | 192.168.8.233 | **Deliberate foothold:** a networked printer left as it is, as an attack target ([`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md)) |
+| gi8 | command | 192.168.8.118 | My new admin laptop (32 GB), taking over from Mint |
 | — | SG300 switch | 192.168.8.165 | The switch's own management address |
 
 </details>
@@ -182,7 +188,7 @@ flowchart LR
 |---|---|---|---|---|
 | 🟧 VLAN 20 · lab | Guard: OPNsense on the t655 | Stateful, every block logged | Internet only | Every private network, and the firewall itself |
 | 🟪 VLAN 10 · servers | Guard: OPNsense (plus the old switch sign, `vlan10-policy`, as a second layer) | Stateful, every block logged | Internet only (replies to admins go back by state) | Home, lab, and the firewall itself |
-| 🟩 VLAN 1 · home | Guard: OPNsense, for anything going to the servers | Stateful | Internet. Servers only from my two admin laptops (SSH, Proxmox GUI, ping) and the monitoring box (SNMP, ping) | The servers, from every other device |
+| 🟩 VLAN 1 · home | Guard: OPNsense, for anything going to the servers | Stateful | Internet. Servers only from my admin laptops (SSH, Proxmox GUI, ping) and the monitoring box (SNMP, ping) | The servers, from every other device |
 
 <details>
 <summary><b>The firewall's lab rules (checked top to bottom, first match wins)</b></summary>
@@ -272,7 +278,7 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 
 **Closed 2026-11-15.** Until then, any device on my home WiFi could reach the servers, including the Proxmox login page. I found it myself by opening Proxmox from my phone. The servers are now behind the firewall: only my two admin laptops (SSH, Proxmox GUI) and the monitoring box (SNMP) get in, and the same phone test is now blocked and logged. Write-up: [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md).
 
-**What's still open:** my admin laptops sit on the home network with everything else. The next step is a separate management VLAN, so admin access needs a dedicated room, not just an allowed address.
+**What's still open:** my admin laptops sit on the home network with everything else. Since [`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md) a networked printer sits there too, on purpose: it can't reach the servers, but it can reach every admin laptop and device login page on the home network, and Suricata can't see that traffic because it never crosses the firewall. The next step is a separate management VLAN, so admin access needs a dedicated room, not just an allowed address.
 
 ## Hardware
 
@@ -284,7 +290,9 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 | **Cisco SG300-10** | Switch | VLANs and the trunk to the firewall. It no longer routes between rooms: the firewall does |
 | **GL.iNet Beryl AX** | Edge router | Wired WAN with automatic WiFi failover (tested by pulling the cable: zero packets lost) |
 | **Lenovo 100e** (`testkit`) | Lab client | Kali Linux: test and attack box on the lab VLAN |
-| **Mint laptop** | Admin workstation | Where I manage everything from |
+| **"command"** (HP laptop) | Admin workstation, 32 GB | Took over admin work in [`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md) when the old Mint laptop (4 GB) ran out of memory |
+| **Mint laptop** | Admin workstation (old) | Being replaced by command |
+| **HP OfficeJet Pro 8025e** | Practice target | Networked on purpose, the opposite of the Canon printer I took off the network |
 
 **Backups:** a nightly local backup of Hermes plus an offsite copy in Cloudflare R2. In [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md) I found it had failed silently for two nights (the backup storage was full), fixed it, and alerts on failure are next.
 
@@ -300,10 +308,12 @@ Details for each machine are in [`hardware/`](hardware/) and [`services/`](servi
 - [x] Suricata on the servers' traffic too: [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md)
 - [x] **Proxmox host RAM 16 → 64 GB**: [`SESSION-56`](runbooks/SESSION-56-ram-upgrade-64gb-openclaw-back-2026-11-13.md)
 - [x] **Wazuh SIEM** live, first agents (Hermes, Proxmox): [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md)
-- [ ] Wazuh: monitoring box, firewall and Suricata logs, laptops
+- [x] Wazuh agent on the monitoring box: [`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md)
+- [ ] Wazuh: firewall and Suricata logs, laptops
 - [ ] Alerts when a backup fails, and a separate backup disk
 - [x] RAM tested (memtest, 0 errors), monitoring box 4 → 12 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
 - [x] Firewall RAM 4 → 16 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
+- [ ] Attack the printer from the lab, then harden it one control at a time
 - [ ] **Put all of the admin dashboards on their own VLAN** (a management VLAN), so only my admin devices can reach them
 
 ## Repo structure
