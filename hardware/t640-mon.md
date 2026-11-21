@@ -122,3 +122,4 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 - [x] command (.118) allowed in nftables and nginx; its Wi-Fi .213 in nftables (confirmed command's, not the phone's, 2026-11-19)
 - [ ] SSH from command: add command's public key (key-only; don't overwrite its existing `id_ed25519`)
 - [ ] Drop Mint's .142/.186 from nftables + nginx when command fully takes over
+- [x] PBS (192.168.10.30) added as LibreNMS device 8 (SESSION-61). The spare t640 is no longer a cold spare for this box: it became `pbs`

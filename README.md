@@ -6,9 +6,10 @@ A homelab built from scratch, documented as a learning log and a portfolio — w
 |---|---|
 | **Rooms (VLANs)** | 3: home, servers, lab |
 | **Firewall** | OPNsense, stateful, with Suricata intrusion detection |
-| **Monitoring** | LibreNMS on 7 devices, central logs, alerts to my phone |
+| **Monitoring** | LibreNMS on 8 devices, central logs, alerts to my phone |
 | **Hosting** | My websites, self-hosted on Proxmox (moved off AWS) |
-| **Documented** | 60 sessions in [`runbooks/`](runbooks/) |
+| **Backups** | 3-2-1: nightly to a backup server on its own machine, plus offsite in Cloudflare R2 |
+| **Documented** | 61 sessions in [`runbooks/`](runbooks/) |
 
 **Contents:** [Goals](#goals) · [Network map](#network-map) · [How the lab reaches the internet](#how-the-lab-reaches-the-internet) · [Segmentation](#segmentation-a-sign-and-a-guard) · [Monitoring](#monitoring-and-alerts) · [Known gap](#known-gap) · [Hardware](#hardware) · [What's next](#whats-next) · [Something I learned](#something-i-learned)
 
@@ -47,6 +48,7 @@ flowchart TB
         pve["Proxmox host"]
         hermes["Hermes VM<br/>websites"]
         wz["Wazuh VM<br/>SIEM"]
+        pbs["pbs · t640<br/>backup server"]
         pve --- hermes
         pve --- wz
     end
@@ -56,6 +58,7 @@ flowchart TB
     end
 
     sw ---|"gi2"| pve
+    sw ---|"gi9"| pbs
     sw ---|"gi4"| mint
     sw ---|"gi6"| mon
     sw ---|"gi7"| hp
@@ -69,7 +72,7 @@ flowchart TB
     classDef edge fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A
     class tk,fw lab
     class mint,cmd,mon,hp home
-    class pve,hermes,oc srv
+    class pve,hermes,oc,pbs srv
     class internet,isp,beryl,sw edge
     style v20 fill:#FDF6F3,stroke:#993C1D,color:#4A1B0C
     style v1 fill:#F2FAF7,stroke:#0F6E56,color:#04342C
@@ -110,6 +113,7 @@ flowchart TB
 | gi2 | Proxmox host (Lenovo M720q) | 192.168.10.2 | Runs the virtual machines |
 | — | Hermes VM | 192.168.10.206 | Hosts my websites |
 | — | Wazuh VM | 192.168.10.20 | SIEM: collects and analyzes security events from my machines ([`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md)) |
+| gi9 | pbs (HP t640) | 192.168.10.30 | Proxmox Backup Server: nightly, deduplicated backups of Hermes and Wazuh ([`SESSION-61`](runbooks/SESSION-61-backup-scare-and-proxmox-backup-server-2026-11-19.md)) |
 
 Gateway: the firewall, 192.168.10.1 (OPNsense, since [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md)). It took the address over from the switch, so nothing inside the servers had to change. The Beryl's route for 192.168.10.0/24 points at the firewall (192.168.8.195), and only my admin laptops and the monitoring box are let in.
 
@@ -222,7 +226,7 @@ The **t640 (t640-mon)** is the lab's monitoring box. It does two jobs that work 
 |---|---|---|
 | **Direction** | The t640 *asks* each device "how are you doing?" on a schedule | Devices *tell* the t640 "this just happened" |
 | **Program on the t640** | LibreNMS | rsyslog |
-| **What I get** | Health graphs for 7 devices | Firewall blocks, Suricata alerts, switch and router events, all in one place |
+| **What I get** | Health graphs for 8 devices | Firewall blocks, Suricata alerts, switch and router events, all in one place |
 
 LibreNMS shows me how all of the devices and ports are doing: memory, temperature, CPU and more, and it uses SNMP. When the firewall blocks something, it ends up on the t640 because the logs go there, with rsyslog.
 
@@ -287,6 +291,7 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 | **Lenovo ThinkCentre M720q** (`pve-node1`) | Proxmox VE host, **64 GB RAM** | Runs Hermes (my websites) and Wazuh (my SIEM). OpenClaw was retired in [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md) |
 | **HP t655** (`t655-fw`) | Firewall | OPNsense 26.7: gateway for the servers and the lab, stateful rules, DHCP and DNS for the lab, Suricata IDS |
 | **HP t640** (`t640-mon`) | Monitoring | Debian 13, key-only SSH: LibreNMS, central logs, phone alerts |
+| **HP t640** (`pbs`) | Backup server | Proxmox Backup Server 4.2: incremental, deduplicated backups on a second machine |
 | **Cisco SG300-10** | Switch | VLANs and the trunk to the firewall. It no longer routes between rooms: the firewall does |
 | **GL.iNet Beryl AX** | Edge router | Wired WAN with automatic WiFi failover (tested by pulling the cable: zero packets lost) |
 | **Lenovo 100e** (`testkit`) | Lab client | Kali Linux: test and attack box on the lab VLAN |
@@ -294,7 +299,7 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 | **Mint laptop** | Admin workstation (old) | Being replaced by command |
 | **HP OfficeJet Pro 8025e** | Practice target | Networked on purpose, the opposite of the Canon printer I took off the network |
 
-**Backups:** a nightly local backup of Hermes plus an offsite copy in Cloudflare R2. In [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md) I found it had failed silently for two nights (the backup storage was full), fixed it, and alerts on failure are next.
+**Backups (3-2-1):** every night Hermes and Wazuh go to a **Proxmox Backup Server on its own machine** (00:30), Hermes also goes to local storage (02:00), and that copy is uploaded offsite to Cloudflare R2 (03:30). The backup client uses a token that can add backups but not delete them. This came out of two silent backup failures caused by a full disk ([`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md), [`SESSION-61`](runbooks/SESSION-61-backup-scare-and-proxmox-backup-server-2026-11-19.md)).
 
 **Retired:** a Hetzner VPS running four honeypots (Cowrie, Dionaea, mailoney, and a WordPress honeypot I built) that captured real attacker traffic. Final write-up: [`SESSION-43`](runbooks/SESSION-43-final-pull-and-lifetime-close-2026-10-30.md).
 
@@ -310,7 +315,8 @@ Details for each machine are in [`hardware/`](hardware/) and [`services/`](servi
 - [x] **Wazuh SIEM** live, first agents (Hermes, Proxmox): [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md)
 - [x] Wazuh agent on the monitoring box: [`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md)
 - [ ] Wazuh: firewall and Suricata logs, laptops
-- [ ] Alerts when a backup fails, and a separate backup disk
+- [x] Backups on a separate machine (Proxmox Backup Server): [`SESSION-61`](runbooks/SESSION-61-backup-scare-and-proxmox-backup-server-2026-11-19.md)
+- [ ] Alerts when a backup fails, and a restore test
 - [x] RAM tested (memtest, 0 errors), monitoring box 4 → 12 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
 - [x] Firewall RAM 4 → 16 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
 - [ ] Attack the printer from the lab, then harden it one control at a time

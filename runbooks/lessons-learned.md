@@ -608,3 +608,13 @@
 - "The dashboard is broken" can be the client. Try a second machine.
 - growpart needs /tmp: TMPDIR=/dev/shm on a full root. "NOCHANGE" can mean it already worked; partx -u.
 - A DHCP address names a device only at a point in time. Re-check, then reserve.
+
+## 2026-11-19 → 21 -- second silent backup failure, Proxmox Backup Server
+- On a VM, deleted files still count until TRIM: fstrim -av in the guest shrinks the next dump.
+- vzdump "92 GiB" = virtual size read; empty blocks are skipped. The archive was 18 GB.
+- Read the file list, not just df, before deciding something was deleted.
+- Fixing the same failure twice means fixing the wrong thing. A backup on the same disk isn't a backup.
+- Check what depends on a job before changing it (the R2 upload read the local dumps).
+- Backup clients get a token that can't delete. Permission dialogs default to NoAccess: choose on purpose.
+- Check which machine the prompt is on: pvesm is Proxmox VE, not PBS.
+- Kali on 100.x = apartment Wi-Fi, not my network. ip -br a first.
