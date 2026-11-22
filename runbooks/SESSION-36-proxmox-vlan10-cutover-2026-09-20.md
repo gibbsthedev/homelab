@@ -55,7 +55,7 @@ safe: nothing was running that could be interrupted.
 ### Surprise: PXE boot
 
 On reboot the M720q fell through to **PXE network boot** (IPv4, then IPv6,
-MAC 98-FA-9B-4C-65-20) instead of booting the disk. Unrelated to the network
+MAC xx:xx:xx:xx:xx:xx) instead of booting the disk. Unrelated to the network
 change: the firmware never reads the OS network config. Recovered by power
 cycling and choosing the disk from the **F12 boot menu**. BIOS boot order still
 needs fixing.

@@ -114,12 +114,12 @@ default. Nothing to click.
 ### MAC Mode left at default
 
 When the port switched to WAN mode, a **MAC Mode** option appeared, showing
-the Beryl's own WAN MAC (`94:83:c4:94:04:03`). Left at default.
+the Beryl's own WAN MAC (`xx:xx:xx:xx:xx:xx`). Left at default.
 
 Kept in reserve: the Juniper port turned out to accept only the first device
 it ever saw (see the WhiteSky investigation), and Mint was the first device on
 the wall jack too. If the Beryl had failed to get an address, cloning Mint's
-MAC (`74:86:7a:3f:58:f7`) was the first thing to try. It wasn't needed.
+MAC (`xx:xx:xx:xx:xx:xx`) was the first thing to try. It wasn't needed.
 
 ---
 

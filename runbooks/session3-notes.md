@@ -10,7 +10,7 @@ pinning the VM's IP, OpenClaw's restart-loop breaker, and giving Hermes
 ## PART 1 — STATE CHANGES THIS SESSION
 
 - VM 100 (docker-agents) given a DHCP reservation on the Beryl AX:
-  MAC bc:24:11:8e:4f:e2 → 192.168.8.10
+  MAC xx:xx:xx:xx:xx:xx → 192.168.8.10
   (IP had drifted .139 → .138 across reboots before this)
 - Tailscale installed on the docker-agents VM and on the AWS Hermes host,
   joining both to the same tailnet so Hermes can reach the home VM

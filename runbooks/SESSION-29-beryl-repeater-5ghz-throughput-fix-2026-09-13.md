@@ -39,10 +39,10 @@ LuCI → Status → Overview showed both radios in Master (AP) mode with their c
 
 ```text
 mt798111  802.11bgnax  Channel 1 (2.412 GHz)   SSID: FBI Surveillance Van #4
-  64:5A:04:74:B4:94  mintstation.lan   -13 dBm   72.0 Mbit/s, 20 MHz, MCS 7
+  xx:xx:xx:xx:xx:xx  mintstation.lan   -13 dBm   72.0 Mbit/s, 20 MHz, MCS 7
 
 mt798112  802.11anacax Channel 48 (5.240 GHz)  SSID: FBI Surveillance Van #5
-  A0:59:50:1B:1C:32  SchoolWork.lan    -25 dBm   1201.0 Mbit/s, 80 MHz, MCS 11, HE-MCS 11
+  xx:xx:xx:xx:xx:xx  SchoolWork.lan    -25 dBm   1201.0 Mbit/s, 80 MHz, MCS 11, HE-MCS 11
 ```
 
 The test laptop (`SchoolWork`) was associated at **-25 dBm, 1201 Mbit/s negotiated**
@@ -73,7 +73,7 @@ iwinfo apcli0 info
 
 ```text
 apcli0    ESSID: "WhiteSky-Prose"
-          Access Point: 04:CD:C0:9A:28:03
+          Access Point: <BSSID-A>
           Mode: Client  Channel: 1 (2.412 GHz) HT Mode: HE20
           Tx-Power: 20 dBm  Link Quality: 89/100
           Signal: -74 dBm  Noise: -40 dBm
@@ -195,14 +195,14 @@ iwinfo apclix0 info
 
 ```text
 apclix0   ESSID: "WhiteSky-Prose"
-          Access Point: C8:78:67:F9:66:B3
+          Access Point: <BSSID-B>
           Mode: Client  Channel: 108 (5.540 GHz) HT Mode: HE40
           Tx-Power: 20 dBm  Link Quality: 100/100
           Signal: -44 dBm  Noise: -47 dBm
           Bit Rate: 573.0 MBit/s
 ```
 
-Note the BSSID also changed (`04:CD:C0:9A:28:03` → `C8:78:67:F9:66:B3`) — a genuinely
+Note the BSSID also changed (`<BSSID-A>` → `<BSSID-B>`) — a genuinely
 different radio on WhiteSky's infrastructure, not just a different band on the same AP.
 
 ---

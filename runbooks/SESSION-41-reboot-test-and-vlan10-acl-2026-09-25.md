@@ -22,7 +22,7 @@ power loss is a config that only looks finished.
 
 ### What made this safe to test now
 
-A DHCP reservation for the switch's MAC (`20:3a:07:f3:de:31` →
+A DHCP reservation for the switch's MAC (`xx:xx:xx:xx:xx:xx` →
 `192.168.8.165`) was added on the Beryl before this test. Without it, the
 switch's own management address — the one every VLAN 10/20 return route on
 the Beryl points at — was only staying the same by dnsmasq habit, not

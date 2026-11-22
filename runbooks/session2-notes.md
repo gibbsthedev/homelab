@@ -24,7 +24,7 @@ Covers: creating the first VM, installing Docker, migrating OpenClaw
 ### VM 100 — docker-agents
 - Debian 13.6 (Trixie)
 - 4 vCPU (type: host), 8 GB RAM, 32 GB disk on local-lvm
-- MAC bc:24:11:8e:4f:e2 — DHCP (should get a reservation; IP has moved once)
+- MAC xx:xx:xx:xx:xx:xx — DHCP (should get a reservation; IP has moved once)
 - qemu-guest-agent installed and running
 - Users:
   - root — password in Apple Passwords
@@ -322,7 +322,7 @@ robust choice for an always-on server.
 After the shutdown/restart for the CPU change, the VM's IP changed and
 SSH stopped working. Recovery: Proxmox Console → `ip addr show` to find
 the new address. Permanent fix: DHCP reservation on the router bound to
-the VM's MAC (bc:24:11:8e:4f:e2), or a static IP inside Debian.
+the VM's MAC (xx:xx:xx:xx:xx:xx), or a static IP inside Debian.
 
 ### 20. An agent speccing its own machine will over-ask
 OpenClaw requested 6 vCPU / 24 GB RAM / 100 GB disk. It ran in a 3.7 GB
@@ -352,7 +352,7 @@ disk growth. This permanently removes the partition-ordering constraint.
 ## PART 4 — OPEN ITEMS / NEXT STEPS
 
 Immediate:
-- [ ] DHCP reservation for the VM (MAC bc:24:11:8e:4f:e2) — IP has moved once
+- [ ] DHCP reservation for the VM (MAC xx:xx:xx:xx:xx:xx) — IP has moved once
 - [ ] Measure sub-agent deploy performance at 4 vCPU; escalate to 6 if it
       still stalls (watch `top` during a deploy)
 - [x] Delete aws-key.pem from the VM (done)
