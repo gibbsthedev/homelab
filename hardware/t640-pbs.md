@@ -47,5 +47,6 @@ the VMs on pve-node1 · **this box** · Cloudflare R2 offsite.
 
 ## Next
 - [ ] File-level restore test, then a full VM restore once pve-node1 has the 500 GB SSD
-- [ ] Notifications (GC / prune / verify failures) → Telegram
+- [x] Notifications: webhook `telegram` + matcher `pbs-to-telegram` (error, warning) → phone (SESSION-63)
+- First week: 40% used after the first full backups, dedup factor 5.14; Wazuh incremental ~1.4 GiB/night (SESSION-63)
 - [ ] UPS

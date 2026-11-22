@@ -9,7 +9,7 @@ A homelab built from scratch, documented as a learning log and a portfolio — w
 | **Monitoring** | LibreNMS on 8 devices, central logs, alerts to my phone |
 | **Hosting** | My websites, self-hosted on Proxmox (moved off AWS) |
 | **Backups** | 3-2-1: nightly to a backup server on its own machine, plus offsite in Cloudflare R2 |
-| **Documented** | 62 sessions in [`runbooks/`](runbooks/) |
+| **Documented** | 63 sessions in [`runbooks/`](runbooks/) |
 
 **Contents:** [Goals](#goals) · [Network map](#network-map) · [How the lab reaches the internet](#how-the-lab-reaches-the-internet) · [Segmentation](#segmentation-a-sign-and-a-guard) · [Monitoring](#monitoring-and-alerts) · [Known gap](#known-gap) · [Hardware](#hardware) · [What's next](#whats-next) · [Something I learned](#something-i-learned)
 
@@ -299,7 +299,7 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 | **Mint laptop** | Admin workstation (old) | Replaced by command in [`SESSION-62`](runbooks/SESSION-62-mint-to-command-migration-and-mac-scrub-2026-11-21.md); drive to be wiped before any reuse |
 | **HP OfficeJet Pro 8025e** | Practice target | Networked on purpose, the opposite of the Canon printer I took off the network |
 
-**Backups (3-2-1):** every night Hermes and Wazuh go to a **Proxmox Backup Server on its own machine** (00:30), Hermes also goes to local storage (02:00), and that copy is uploaded offsite to Cloudflare R2 (03:30). The backup client uses a token that can add backups but not delete them. This came out of two silent backup failures caused by a full disk ([`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md), [`SESSION-61`](runbooks/SESSION-61-backup-scare-and-proxmox-backup-server-2026-11-19.md)).
+**Backups (3-2-1):** every night Hermes and Wazuh go to a **Proxmox Backup Server on its own machine** (00:30), Hermes also goes to local storage (02:00), and that copy is uploaded offsite to Cloudflare R2 (03:30). The backup client uses a token that can add backups but not delete them. A failed or warned backup on either machine sends a Telegram message to my phone ([`SESSION-63`](runbooks/SESSION-63-backup-alerts-to-phone-and-first-week-of-pbs-2026-11-22.md)). This came out of two silent backup failures caused by a full disk ([`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md), [`SESSION-61`](runbooks/SESSION-61-backup-scare-and-proxmox-backup-server-2026-11-19.md)).
 
 **Retired:** a Hetzner VPS running four honeypots (Cowrie, Dionaea, mailoney, and a WordPress honeypot I built) that captured real attacker traffic. Final write-up: [`SESSION-43`](runbooks/SESSION-43-final-pull-and-lifetime-close-2026-10-30.md).
 
@@ -316,7 +316,8 @@ Details for each machine are in [`hardware/`](hardware/) and [`services/`](servi
 - [x] Wazuh agent on the monitoring box: [`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md)
 - [ ] Wazuh: firewall and Suricata logs, laptops
 - [x] Backups on a separate machine (Proxmox Backup Server): [`SESSION-61`](runbooks/SESSION-61-backup-scare-and-proxmox-backup-server-2026-11-19.md)
-- [ ] Alerts when a backup fails, and a restore test
+- [x] Backup failures reach my phone (Proxmox + PBS → Telegram): [`SESSION-63`](runbooks/SESSION-63-backup-alerts-to-phone-and-first-week-of-pbs-2026-11-22.md)
+- [ ] Restore test (waiting for a second SSD in the Proxmox host)
 - [x] RAM tested (memtest, 0 errors), monitoring box 4 → 12 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
 - [x] Firewall RAM 4 → 16 GB: [`SESSION-58`](runbooks/SESSION-58-memtest-ram-moves-and-snmpd-boot-race-2026-11-15.md)
 - [ ] Attack the printer from the lab, then harden it one control at a time

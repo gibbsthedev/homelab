@@ -628,3 +628,11 @@
 - Quote remote wildcards so the remote side expands them. rsync is safe to re-run.
 - Config files outlive accounts (the sg300 shortcut still said cisco).
 - Old drives get wiped (nwipe), not just reinstalled, before reuse.
+
+## 2026-11-22 -- backup alerts to phone, first PBS numbers
+- An estimate from one day of data is noise ("19h until full"). Read real usage and per-night change.
+- Incremental (dirty-bitmap) backups read only changed blocks: 1.4 GiB of 60, 97% reused, 7 s.
+- Check memory inside the guest: host graphs count cache. "available" is what matters.
+- Don't upgrade a SIEM's OS past what the SIEM supports.
+- "Notified" isn't "read": the backups had been mailing root all along. Find where notifications go.
+- Alert on failures only. Keep secrets out of URLs. Failure alerts can't see a job that never ran.
