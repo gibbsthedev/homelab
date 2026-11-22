@@ -618,3 +618,13 @@
 - Backup clients get a token that can't delete. Permission dialogs default to NoAccess: choose on purpose.
 - Check which machine the prompt is on: pvesm is Proxmox VE, not PBS.
 - Kali on 100.x = apartment Wi-Fi, not my network. ip -br a first.
+
+## 2026-11-21 → 22 -- Mint to command, MAC scrub
+- Search before trusting a todo list: "2 files with MACs" was 7, including geolocatable Wi-Fi BSSIDs.
+- Inventory first, then sort: copy, re-download, retire.
+- Don't copy private keys between machines. One key per machine; retiring a machine = removing one key.
+- >> appends, > replaces. On authorized_keys the difference is a lockout.
+- A checksum file can store an absolute path: "FAILED open or read" can be the path, not the data.
+- Quote remote wildcards so the remote side expands them. rsync is safe to re-run.
+- Config files outlive accounts (the sg300 shortcut still said cisco).
+- Old drives get wiped (nwipe), not just reinstalled, before reuse.

@@ -9,7 +9,7 @@ A homelab built from scratch, documented as a learning log and a portfolio — w
 | **Monitoring** | LibreNMS on 8 devices, central logs, alerts to my phone |
 | **Hosting** | My websites, self-hosted on Proxmox (moved off AWS) |
 | **Backups** | 3-2-1: nightly to a backup server on its own machine, plus offsite in Cloudflare R2 |
-| **Documented** | 61 sessions in [`runbooks/`](runbooks/) |
+| **Documented** | 62 sessions in [`runbooks/`](runbooks/) |
 
 **Contents:** [Goals](#goals) · [Network map](#network-map) · [How the lab reaches the internet](#how-the-lab-reaches-the-internet) · [Segmentation](#segmentation-a-sign-and-a-guard) · [Monitoring](#monitoring-and-alerts) · [Known gap](#known-gap) · [Hardware](#hardware) · [What's next](#whats-next) · [Something I learned](#something-i-learned)
 
@@ -38,7 +38,7 @@ flowchart TB
     beryl ---|"gi1"| sw
 
     subgraph v1["VLAN 1 · home · 192.168.8.x"]
-        mint["Mint<br/>admin laptop"]
+        mint["Mint<br/>old admin laptop"]
         cmd["command<br/>admin laptop"]
         mon["t640<br/>monitoring"]
         hp["HP printer<br/>deliberate foothold"]
@@ -96,11 +96,11 @@ flowchart TB
 | Port | Device | Address | Job |
 |---|---|---|---|
 | gi1 | Beryl AX router | 192.168.8.1 | Internet in and out, home WiFi (FBI #4 / #5), hands out home addresses |
-| gi4 | Mint | 192.168.8.142 | My admin laptop: where I manage everything from |
+| gi4 | Mint | 192.168.8.142 | My old admin laptop, being retired ([`SESSION-62`](runbooks/SESSION-62-mint-to-command-migration-and-mac-scrub-2026-11-21.md)) |
 | gi5 | t655 (outside side) | 192.168.8.195 | The firewall's face toward home and the internet |
 | gi6 | t640-mon | 192.168.8.24 | Monitoring: LibreNMS graphs, central logs, phone alerts |
 | gi7 | HP OfficeJet Pro 8025e | 192.168.8.233 | **Deliberate foothold:** a networked printer left as it is, as an attack target ([`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md)) |
-| gi8 | command | 192.168.8.118 | My new admin laptop (32 GB), taking over from Mint |
+| gi8 | command | 192.168.8.118 | My admin laptop (32 GB): SSH shortcuts and its own key for every device ([`SESSION-62`](runbooks/SESSION-62-mint-to-command-migration-and-mac-scrub-2026-11-21.md)) |
 | — | SG300 switch | 192.168.8.165 | The switch's own management address |
 
 </details>
@@ -296,7 +296,7 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 | **GL.iNet Beryl AX** | Edge router | Wired WAN with automatic WiFi failover (tested by pulling the cable: zero packets lost) |
 | **Lenovo 100e** (`testkit`) | Lab client | Kali Linux: test and attack box on the lab VLAN |
 | **"command"** (HP laptop) | Admin workstation, 32 GB | Took over admin work in [`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md) when the old Mint laptop (4 GB) ran out of memory |
-| **Mint laptop** | Admin workstation (old) | Being replaced by command |
+| **Mint laptop** | Admin workstation (old) | Replaced by command in [`SESSION-62`](runbooks/SESSION-62-mint-to-command-migration-and-mac-scrub-2026-11-21.md); drive to be wiped before any reuse |
 | **HP OfficeJet Pro 8025e** | Practice target | Networked on purpose, the opposite of the Canon printer I took off the network |
 
 **Backups (3-2-1):** every night Hermes and Wazuh go to a **Proxmox Backup Server on its own machine** (00:30), Hermes also goes to local storage (02:00), and that copy is uploaded offsite to Cloudflare R2 (03:30). The backup client uses a token that can add backups but not delete them. This came out of two silent backup failures caused by a full disk ([`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md), [`SESSION-61`](runbooks/SESSION-61-backup-scare-and-proxmox-backup-server-2026-11-19.md)).

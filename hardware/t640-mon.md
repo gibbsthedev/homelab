@@ -30,7 +30,7 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 | Switch port | SG300 **gi6**, VLAN 1 (default access) |
 | Address | 192.168.8.24/24, DHCP from Beryl, reserved to the MAC above |
 | Hostname | `t640-mon` (domain `lan`) |
-| Access | `ssh t640-mon` from Mint (key `~/.ssh/homelab_mint`, `IdentitiesOnly yes`) |
+| Access | `ssh t640-mon` from **command** (its own `~/.ssh/id_ed25519`, added to `authorized_keys` with `>>` via Mint, SESSION-62). Mint's `homelab_mint` key still present until Mint is retired |
 
 ## OS
 - Debian 13 (trixie), netinst 13.7.0, kernel 6.12.113+deb13-amd64
