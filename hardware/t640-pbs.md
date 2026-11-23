@@ -43,7 +43,8 @@ the VMs on pve-node1 · **this box** · Cloudflare R2 offsite.
 ## Known limits
 - One SSD: no redundancy. R2 is the other copy.
 - Datastore on the root filesystem: a full datastore fills the OS. Watched by LibreNMS "Space on / ≥90%".
-- Logs to journald (no /var/log/auth.log): SSH logins don't reach Wazuh yet (same open item as Proxmox).
+- Logs to journald (no /var/log/auth.log): SSH logins don't reach Wazuh yet. Fix planned: journald `<localfile>` filtered to sshd/sshd-session/sudo/su/login (SESSION-64).
+- **Key-only SSH** since 2026-11-22: `/etc/ssh/sshd_config.d/10-hardening.conf` (PermitRootLogin prohibit-password, no passwords) (SESSION-64).
 
 ## Next
 - [ ] File-level restore test, then a full VM restore once pve-node1 has the 500 GB SSD

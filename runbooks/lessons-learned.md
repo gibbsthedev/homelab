@@ -636,3 +636,11 @@
 - Don't upgrade a SIEM's OS past what the SIEM supports.
 - "Notified" isn't "read": the backups had been mailing root all along. Find where notifications go.
 - Alert on failures only. Keep secrets out of URLs. Failure alerts can't see a job that never ran.
+
+## 2026-11-22 -- Mint retired, key-only SSH, command in Wazuh
+- Test every access change from a second session; know the rollback first.
+- Remove access from the outside in: the alias last, from a machine that stays in it.
+- List keys by comment, not content: awk '{print NR": "$1" … "$NF}' ~/.ssh/authorized_keys
+- Drop-in sshd files beat editing vendor configs; the first value wins, so name the file to be read first (00-/10-).
+- sshd -T shows what's in effect. Prove the negative: ssh -o PubkeyAuthentication=no must be refused.
+- Compare a working machine with a broken one: same agent, log file vs journald, isolates the cause.

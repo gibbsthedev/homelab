@@ -9,7 +9,7 @@ A homelab built from scratch, documented as a learning log and a portfolio — w
 | **Monitoring** | LibreNMS on 8 devices, central logs, alerts to my phone |
 | **Hosting** | My websites, self-hosted on Proxmox (moved off AWS) |
 | **Backups** | 3-2-1: nightly to a backup server on its own machine, plus offsite in Cloudflare R2 |
-| **Documented** | 63 sessions in [`runbooks/`](runbooks/) |
+| **Documented** | 64 sessions in [`runbooks/`](runbooks/) |
 
 **Contents:** [Goals](#goals) · [Network map](#network-map) · [How the lab reaches the internet](#how-the-lab-reaches-the-internet) · [Segmentation](#segmentation-a-sign-and-a-guard) · [Monitoring](#monitoring-and-alerts) · [Known gap](#known-gap) · [Hardware](#hardware) · [What's next](#whats-next) · [Something I learned](#something-i-learned)
 
@@ -280,7 +280,7 @@ I triggered this one on purpose from testkit to prove the whole chain works, fro
 
 ## Known gap
 
-**Closed 2026-11-15.** Until then, any device on my home WiFi could reach the servers, including the Proxmox login page. I found it myself by opening Proxmox from my phone. The servers are now behind the firewall: only my two admin laptops (SSH, Proxmox GUI) and the monitoring box (SNMP) get in, and the same phone test is now blocked and logged. Write-up: [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md).
+**Closed 2026-11-15.** Until then, any device on my home WiFi could reach the servers, including the Proxmox login page. I found it myself by opening Proxmox from my phone. The servers are now behind the firewall: only my admin laptops (SSH, Proxmox GUI) and the monitoring box (SNMP) get in, and the same phone test is now blocked and logged. Write-up: [`SESSION-57`](runbooks/SESSION-57-beryl-4.11-and-phase3-servers-behind-opnsense-2026-11-15.md).
 
 **What's still open:** my admin laptops sit on the home network with everything else. Since [`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md) a networked printer sits there too, on purpose: it can't reach the servers, but it can reach every admin laptop and device login page on the home network, and Suricata can't see that traffic because it never crosses the firewall. The next step is a separate management VLAN, so admin access needs a dedicated room, not just an allowed address.
 
@@ -314,7 +314,8 @@ Details for each machine are in [`hardware/`](hardware/) and [`services/`](servi
 - [x] **Proxmox host RAM 16 → 64 GB**: [`SESSION-56`](runbooks/SESSION-56-ram-upgrade-64gb-openclaw-back-2026-11-13.md)
 - [x] **Wazuh SIEM** live, first agents (Hermes, Proxmox): [`SESSION-59`](runbooks/SESSION-59-suricata-servers-openclaw-retired-backup-fix-wazuh-live-2026-11-15.md)
 - [x] Wazuh agent on the monitoring box: [`SESSION-60`](runbooks/SESSION-60-printer-foothold-command-admin-t640-agent-hermes-disk-2026-11-16.md)
-- [ ] Wazuh: firewall and Suricata logs, laptops
+- [x] Wazuh agent on my admin laptop, first detection, and key-only SSH on the servers: [`SESSION-64`](runbooks/SESSION-64-mint-retired-key-only-ssh-command-agent-2026-11-22.md)
+- [ ] Wazuh: firewall and Suricata logs, SSH logins from journald, the Windows laptop
 - [x] Backups on a separate machine (Proxmox Backup Server): [`SESSION-61`](runbooks/SESSION-61-backup-scare-and-proxmox-backup-server-2026-11-19.md)
 - [x] Backup failures reach my phone (Proxmox + PBS → Telegram): [`SESSION-63`](runbooks/SESSION-63-backup-alerts-to-phone-and-first-week-of-pbs-2026-11-22.md)
 - [ ] Restore test (waiting for a second SSD in the Proxmox host)

@@ -30,7 +30,7 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 | Switch port | SG300 **gi6**, VLAN 1 (default access) |
 | Address | 192.168.8.24/24, DHCP from Beryl, reserved to the MAC above |
 | Hostname | `t640-mon` (domain `lan`) |
-| Access | `ssh t640-mon` from **command** (its own `~/.ssh/id_ed25519`, added to `authorized_keys` with `>>` via Mint, SESSION-62). Mint's `homelab_mint` key still present until Mint is retired |
+| Access | `ssh t640-mon` from **command** (its own `~/.ssh/id_ed25519`, added to `authorized_keys` with `>>` via Mint, SESSION-62). Mint's key removed 2026-11-22: **only command** is trusted (SESSION-64) |
 
 ## OS
 - Debian 13 (trixie), netinst 13.7.0, kernel 6.12.113+deb13-amd64
@@ -45,14 +45,14 @@ and its outdated-then-updated BIOS matters less on an internal box than at the e
 ## Services (2026-11-06)
 | Service | Detail |
 | --- | --- |
-| Host firewall | nftables, **default deny inbound**. Allow: established/related, loopback, TCP 22+80 from the admin laptops only (Mint `.186`/`.142`, command `.118` wired / `.213` Wi-Fi, since SESSION-60), UDP 514 from the switch (`.165`), t655-fw (`.195`) and the Beryl (`.1`) only, ICMP/ICMPv6. Forward: drop. Output: accept. `/etc/nftables.conf`, enabled at boot |
+| Host firewall | nftables, **default deny inbound**. Allow: established/related, loopback, TCP 22+80 from **command only** (`.118` wired / `.213` Wi-Fi). Mint removed 2026-11-22 (SESSION-64), UDP 514 from the switch (`.165`), t655-fw (`.195`) and the Beryl (`.1`) only, ICMP/ICMPv6. Forward: drop. Output: accept. `/etc/nftables.conf`, enabled at boot |
 | Syslog receiver | rsyslog, UDP 514 (`/etc/rsyslog.d/10-remote.conf`), one file per sender IP in `/var/log/remote/`. Senders: SG300 (.165), t655-fw (.195, OPNsense filterlog), Beryl (.1, OpenWrt logread: DHCP, Wi-Fi assoc/deauth, WAN events) |
 | Log rotation | `/etc/logrotate.d/remote`: daily, 14 days, compressed |
 | SNMP client | `snmp` package; polls SG300 v2c read-only. Community string in Apple Passwords, **not here** |
 | Database | MariaDB 11.8.6, **127.0.0.1:3306 only**. DB `librenms`, user `librenms@localhost` (rights on that DB only). Password in Apple Passwords |
 | PHP | 8.4.27. Dedicated FPM pool `[librenms]` runs as `librenms`; socket `/run/php-fpm-librenms.sock` (owner `www-data`, mode 0660) |
 | LibreNMS | 26.10.0 in `/opt/librenms`, owned by system user `librenms`. Web UI `http://192.168.8.24` (Mint only). Non-default admin username. Validate: clean |
-| Web server | nginx, `/etc/nginx/sites-enabled/librenms.conf`: root `/opt/librenms/html`, `allow` Mint `.186`/`.142` + command `.118` (SESSION-60), `deny all`. Backup copies go in `/root/`, never inside `sites-enabled`, dotfiles denied |
+| Web server | nginx, `/etc/nginx/sites-enabled/librenms.conf`: root `/opt/librenms/html`, `allow` command `.118` only (Mint removed 2026-11-22, SESSION-64), `deny all`. Backup copies go in `/root/`, never inside `sites-enabled`, dotfiles denied |
 | Scheduling | `librenms-scheduler.timer` (every minute), `/etc/cron.d/librenms` (5-min polling + daily update), `/etc/logrotate.d/librenms` |
 | Python deps | From **apt**, not pip: python3-pymysql, -dotenv, -redis, -setuptools, -psutil, -command-runner |
 | Monitored devices | 6: + t655-fw `.8.195` (2026-11-09, SESSION-47). Earlier 5 (SESSION-46): SG300 `.8.165`, pve-node1 `.10.2`, itself `.8.24`, docker-agents `.10.10`, hermes `.10.206`. SNMP v2c, unique community per device, held in LibreNMS's credential store |
@@ -120,6 +120,6 @@ ACPI tables (hotkey/BIOS-settings interface). Logged, ignored; hidden from the c
 ## Findings 2026-11-16 → 19 (SESSION-60)
 - [x] Third Wazuh agent (after hermes, pve-node1)
 - [x] command (.118) allowed in nftables and nginx; its Wi-Fi .213 in nftables (confirmed command's, not the phone's, 2026-11-19)
-- [ ] SSH from command: add command's public key (key-only; don't overwrite its existing `id_ed25519`)
-- [ ] Drop Mint's .142/.186 from nftables + nginx when command fully takes over
+- [x] SSH from command with its own key (SESSION-62)
+- [x] Mint's .142/.186 dropped from nftables + nginx, Mint's key removed (SESSION-64)
 - [x] PBS (192.168.10.30) added as LibreNMS device 8 (SESSION-61). The spare t640 is no longer a cold spare for this box: it became `pbs`
